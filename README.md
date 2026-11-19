@@ -7,7 +7,10 @@ HTML Free Writer 是一個用單檔 HTML 製作的離線 A4 排版工具。可�
 
 ## 快速開始
 
-👉 **線上體驗與完整包下載**：[https://office.ddmmbb.org/](https://office.ddmmbb.org/)
+👉 **線上體驗與 HTMLoffice 完整包下載**：[https://office.ddmmbb.org/](https://office.ddmmbb.org/)
+👉 **直接開始測試 html-free-writer**：[https://office.ddmmbb.org/free-word.html](https://office.ddmmbb.org/free-word.html)
+
+https://office.ddmmbb.org/free-word.html
 
 1. 用瀏覽器開啟 `free-word.html`。如果畫面在閱讀模式，按 **編輯模式** 即可開始操作。可以用現有頁面試拖曳，或按 **新文件** 開始空白排版。
 2. 從工具列加入文字框、表格、圖片或符號。點一下選取物件，拖曳即可移動，拉右下角可調整大小。雙擊文字框或表格可編輯內容。
