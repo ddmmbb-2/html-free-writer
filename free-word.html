@@ -85,8 +85,8 @@ button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;
 .table-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
 .table-actions button{font-size:12px;padding-inline:4px}
 .table-actions .full-width{grid-column:1/-1}
-.symbol-color{display:inline-flex;align-items:center;gap:7px}
-.symbol-color input{width:39px;padding:3px}
+.symbol-color,.text-color{display:inline-flex;align-items:center;gap:7px}
+.symbol-color input,.text-color input{width:39px;padding:3px}
 .grid-option label{display:inline-flex;gap:4px;align-items:center}
 .grid-option input{min-height:0;margin:0;accent-color:var(--accent)}
 .grid-option select{min-height:29px}
@@ -173,6 +173,11 @@ button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;
         <button type="button" data-command="bold" aria-label="粗體"><b>B</b></button>
         <button type="button" data-command="italic" aria-label="斜體"><i>I</i></button>
         <button type="button" data-command="underline" aria-label="底線"><u>U</u></button>
+        <div class="text-color">
+          <label for="text-color">文字顏色</label>
+          <input id="text-color" type="color" value="#1f2d2b">
+          <button id="apply-text-color" type="button" aria-label="套用目前的文字顏色">套用</button>
+        </div>
         <button type="button" data-command="justifyLeft">靠左</button>
         <button type="button" data-command="justifyCenter">置中</button>
         <button type="button" data-command="insertUnorderedList">清單</button>
@@ -278,8 +283,8 @@ const isGraphic = object => object.type === "image" || object.type === "symbol";
 const fixedRatio = object => isGraphic(object) && object.lockRatio !== false;
 const imageType = /^image\/(png|jpeg|gif|webp|bmp|avif)$/i;
 const inlineImage = /^data:image\/(png|jpeg|gif|webp|bmp|avif);base64,[a-z\d+/=\s]+$/i;
-const allowed = new Set("p div span h1 h2 h3 h4 h5 h6 br hr b strong i em u s strike mark sub sup small a img ul ol li table caption colgroup col thead tbody tfoot tr th td blockquote pre code".split(" "));
-const allowedAttrs = {ol:["start","reversed"],li:["value"],col:["span"],td:["rowspan","colspan"],th:["rowspan","colspan","scope"],img:["alt"]};
+const allowed = new Set("p div span h1 h2 h3 h4 h5 h6 br hr b strong i em u s strike mark sub sup small font a img ul ol li table caption colgroup col thead tbody tfoot tr th td blockquote pre code".split(" "));
+const allowedAttrs = {ol:["start","reversed"],li:["value"],col:["span"],td:["rowspan","colspan"],th:["rowspan","colspan","scope"],img:["alt"],font:["color"]};
 const allowedStyles = "color background-color font-family font-size font-weight font-style text-decoration text-align vertical-align line-height width".split(" ");
 const id = () => globalThis.crypto?.randomUUID?.() || Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
 const round = value => Math.round(value * 100) / 100;
@@ -1283,6 +1288,11 @@ $("format").addEventListener("change",event => {
   if (value) editCommand("formatBlock","<" + value + ">");
   event.target.value = "";
 });
+function applyTextColor() {
+  editCommand("foreColor",$("text-color").value);
+}
+$("text-color").addEventListener("change",applyTextColor);
+$("apply-text-color").addEventListener("click",applyTextColor);
 $("finish-edit").addEventListener("click",() => { const frame = frames.get(selectedId); finishEdit(); frame?.focus(); });
 $("edit-content").addEventListener("click",() => startEdit(selected()));
 $("page-list").addEventListener("click",event => {
