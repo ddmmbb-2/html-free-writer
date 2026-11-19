@@ -1,0 +1,1427 @@
+<!doctype html>
+<html lang="zh-Hant" data-mode="read"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>院內課程公告</title>
+<style>
+:root{color-scheme:light;--ink:#20282a;--muted:#526063;--line:#dde3e2;--panel:#fff;--work:#e9eeec;--accent:#215d54;--accent-light:#e7f2ee;--guide:#007e9d;font:14px/1.5 "Inter","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;color:var(--ink)}
+*{box-sizing:border-box}
+body{margin:0}
+button,input,select{font:inherit;color:inherit}
+button,select{cursor:pointer}
+button,input,select{min-height:34px;border:1px solid var(--line);border-radius:6px;background:white;padding:5px 9px}
+button:hover,select:hover{background:#f1f5f3}
+button:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #268172;outline-offset:2px}
+button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;color:var(--accent)}
+.primary,.primary:hover{color:white;background:var(--accent);border-color:var(--accent)}
+[hidden]{display:none!important}
+#editor{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+.chrome{flex:none;background:var(--panel);z-index:2}
+.top,.toolbar,.group,.side-title,.page-nav,.grid-option,.statusbar{display:flex;align-items:center;gap:6px}
+.top,.toolbar{padding:9px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.top{justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:9px;min-width:0}
+.mark{display:grid;place-items:center;width:30px;height:34px;border-radius:6px;background:var(--accent);color:white;font-weight:750}
+.brand strong{display:block;font-size:12px}
+#document-title{background:transparent;border-color:transparent;border-radius:4px;min-height:23px;padding:1px 2px;font-weight:650;width:clamp(120px,23vw,280px)}
+#document-title:not(:read-only):hover{border-color:var(--line)}
+.group{flex-wrap:wrap}
+.toolbar .group+.group{border-inline-start:1px solid var(--line);padding-inline-start:7px}
+.zoom-value{min-width:58px;font-variant-numeric:tabular-nums}
+.shell{flex:1;min-height:0;display:grid;grid-template-columns:164px minmax(0,1fr) 204px}
+.sidebar{background:var(--panel);padding:13px 10px;overflow:auto}
+.pages{border-right:1px solid var(--line)}
+.inspector{border-left:1px solid var(--line)}
+.side-title{justify-content:space-between;margin:0 0 8px}
+.side-title h2{font-size:13px;margin:0}
+.side-title button{min-height:28px}
+.page-list,.object-list{display:grid;gap:4px}
+.page-list button,.object-list button{text-align:left;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side-section{margin-top:17px}
+.work{overflow:auto;background:var(--work);padding:22px 24px 54px;overscroll-behavior:contain}
+.stage{position:relative;margin-inline:auto;overflow:clip;overflow-clip-margin:18px}
+.page{position:absolute;inset:0 auto auto 0;width:210mm;height:297mm;background:white;transform-origin:top left;box-shadow:0 0 0 1px #52696141,0 10px 32px #21362e1c;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.grid-layer{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(to right,#628f8824 1px,transparent 1px),linear-gradient(to bottom,#628f8824 1px,transparent 1px);background-size:var(--grid-step,5mm) var(--grid-step,5mm)}
+.margin-layer{position:absolute;inset:15mm;border:1px dashed #789d95a0;pointer-events:none}
+.guide-x,.guide-y{position:absolute;pointer-events:none;z-index:3;background:var(--guide)}
+.guide-x{top:0;bottom:0;width:1px}
+.guide-y{left:0;right:0;height:1px}
+.item{position:absolute;touch-action:none;cursor:move;user-select:none}
+.item:focus{outline:none}
+.item[data-selected]{outline:1.5px solid #177c6e}
+.item:focus-visible{outline:2px solid #177c6e}
+.item-body{min-height:100%;width:100%;font:12pt/1.55 "Microsoft JhengHei","Noto Sans CJK TC","PingFang TC",system-ui,sans-serif;overflow-wrap:anywhere;color:#1f2d2b}
+.item-body:focus{outline:none}
+.item-body p,.item-body ul,.item-body ol{margin:0 0 .55em}
+.item-body h1,.item-body h2,.item-body h3{line-height:1.25;margin:0 0 .35em}
+.item-body h1{font-size:24pt}.item-body h2{font-size:17pt}.item-body h3{font-size:14pt}
+.item-body table{width:100%;table-layout:fixed;border-collapse:collapse}
+.item-body th,.item-body td{border:1px solid #b9c9c5;text-align:left;padding:5px 7px;vertical-align:top}
+.item-body th{background:#edf4f0}
+.item-body img{max-width:100%;height:auto;vertical-align:middle}
+.item[data-kind="image"] .item-body img{display:block;width:100%;height:100%;object-fit:fill;pointer-events:none}
+.item[data-kind="image"] .item-body{height:100%}
+.item[data-kind="symbol"] .item-body{height:100%}
+.item[data-kind="symbol"] svg{display:block;width:100%;height:100%;pointer-events:none}
+.item[data-editing]{cursor:text;touch-action:auto;user-select:text}
+.item[data-picking-cells]{touch-action:none;user-select:none}
+.item[data-picking-cells] :is(td,th){cursor:cell}
+.item [data-cell-picked]{background:#dcefed;box-shadow:inset 0 0 0 2px #297c72}
+.resize,.rotate-item{display:none;position:absolute;min-height:0;padding:0;border:1.5px solid #177c6e;background:white;z-index:1;touch-action:none}
+.resize{right:0;bottom:0;transform:translate(50%,50%);width:14px;height:14px;border-radius:2px;cursor:nwse-resize}
+.rotate-item{left:50%;bottom:calc(100% + 13px);transform:translateX(-50%);width:26px;height:26px;color:#177c6e;border-radius:50%;font-size:17px;line-height:1;cursor:grab}
+.rotate-item::after{content:"";position:absolute;top:100%;left:50%;height:14px;border-left:1px solid #177c6e;pointer-events:none}
+.rotate-item:active{cursor:grabbing}
+.item[data-selected] :is(.resize,.rotate-item){display:block}
+.item[data-editing] .resize{display:none}
+.measurements{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.measurements label{display:grid;gap:3px;color:var(--muted);font-size:12px}
+.measurements input{width:100%;min-width:0;font-variant-numeric:tabular-nums}
+.transform-options{margin-top:9px;align-items:end}
+.transform-options .aspect-lock{display:flex;align-self:center;flex-wrap:wrap;gap:4px}
+.transform-options .aspect-lock input{width:auto;min-height:0;margin:0;accent-color:var(--accent)}
+.inspector-actions,.grid-option{margin-top:9px;flex-wrap:wrap}
+.table-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.table-actions button{font-size:12px;padding-inline:4px}
+.table-actions .full-width{grid-column:1/-1}
+.symbol-color{display:inline-flex;align-items:center;gap:7px}
+.symbol-color input{width:39px;padding:3px}
+.grid-option label{display:inline-flex;gap:4px;align-items:center}
+.grid-option input{min-height:0;margin:0;accent-color:var(--accent)}
+.grid-option select{min-height:29px}
+.statusbar{justify-content:space-between;background:white;border-top:1px solid var(--line);padding:4px 12px;min-height:26px;flex:none;color:var(--muted);font-size:12px}
+.statusbar span{text-align:right}
+.read-only{display:none}
+[data-mode="read"] .edit-only{display:none!important}
+[data-mode="read"] .read-only{display:initial}
+[data-mode="read"] .shell{grid-template-columns:164px minmax(0,1fr)}
+[data-mode="read"] .page{overflow:hidden}
+[data-mode="read"] .item{cursor:auto;touch-action:auto;user-select:text}
+#print-root{display:none}
+@media(max-width:880px){
+  .shell{grid-template-columns:124px minmax(0,1fr) 170px}
+  [data-mode="read"] .shell{grid-template-columns:124px minmax(0,1fr)}
+  .work{padding-inline:14px}
+}
+@media(max-width:680px){
+  .shell,[data-mode="read"] .shell{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto}
+  .pages{border-right:0;border-bottom:1px solid var(--line);padding:5px 7px;display:flex;gap:6px;align-items:start}
+  .pages .side-title{margin:0;white-space:nowrap}
+  .page-list{display:flex;overflow:auto}
+  .page-list button{width:auto;flex:none;min-height:28px}
+  .inspector{border-left:0;border-top:1px solid var(--line);max-height:26dvh;padding:5px 7px}
+  .measurements{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .inspector .side-section{margin-top:7px}
+  .object-list{display:flex;overflow:auto}
+  .object-list button{width:auto;flex:none;max-width:155px}
+  .top,.toolbar{padding:5px 7px}
+  .work{padding:12px 9px 42px}
+  .top .group,.toolbar,.toolbar .group{gap:4px}
+  .top button,.toolbar button,.toolbar select{min-height:29px;padding:3px 6px}
+}
+@page{size:A4 portrait;margin:0}
+@media print{
+  html,body{background:white;margin:0;padding:0}
+  body{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  #editor{display:none}
+  #print-root{display:block}
+  .print-page{position:relative;width:210mm;height:296.9mm;overflow:hidden;break-inside:avoid;break-after:page}
+  .print-page:last-child{break-after:auto}
+}
+</style>
+</head>
+<body>
+<main id="editor">
+  <header class="chrome">
+    <div class="top">
+      <div class="brand">
+        <span class="mark" aria-hidden="true">文</span>
+        <div><strong>自由排版 Word</strong><input id="document-title" aria-label="文件名稱" maxlength="100"></div>
+      </div>
+      <div class="group">
+        <button id="new-file" class="edit-only" type="button">新文件</button>
+        <button id="mode" type="button">閱讀模式</button>
+        <button id="print" type="button">列印／PDF</button>
+        <button id="save" type="button" class="primary">另存 HTML</button>
+      </div>
+    </div>
+    <div class="toolbar">
+      <div class="group edit-only" role="group" aria-label="插入物件">
+        <button type="button" data-add="text">＋ 文字框</button>
+        <button type="button" data-add="table">＋ 表格</button>
+        <button type="button" data-add="image">＋ 圖片</button>
+        <select id="symbol-picker" aria-label="插入向量符號">
+          <option value="">＋ 符號</option>
+        </select>
+        <input type="file" id="image-file" accept="image/png,image/jpeg,image/gif,image/webp,image/bmp,image/avif" hidden="">
+      </div>
+      <div class="group edit-only" role="group" aria-label="編輯歷程">
+        <button id="undo" type="button" title="復原 Ctrl+Z" aria-label="復原">↶</button>
+        <button id="redo" type="button" title="重做 Ctrl+Y" aria-label="重做">↷</button>
+      </div>
+      <div class="group" role="group" aria-label="頁面縮放">
+        <button id="zoom-out" type="button" title="縮小" aria-label="縮小">−</button>
+        <button id="zoom-reset" class="zoom-value" type="button" title="還原 100%">100%</button>
+        <button id="zoom-in" type="button" title="放大" aria-label="放大">＋</button>
+        <button id="zoom-fit" type="button">適合寬度</button>
+      </div>
+      <div id="text-tools" class="group edit-only" role="group" aria-label="框內格式" hidden="">
+        <select id="format" aria-label="段落樣式">
+          <option value="">段落樣式</option><option value="p">內文</option><option value="h1">標題 1</option><option value="h2">標題 2</option><option value="h3">標題 3</option>
+        </select>
+        <button type="button" data-command="bold" aria-label="粗體"><b>B</b></button>
+        <button type="button" data-command="italic" aria-label="斜體"><i>I</i></button>
+        <button type="button" data-command="underline" aria-label="底線"><u>U</u></button>
+        <button type="button" data-command="justifyLeft">靠左</button>
+        <button type="button" data-command="justifyCenter">置中</button>
+        <button type="button" data-command="insertUnorderedList">清單</button>
+        <button id="finish-edit" type="button">完成編輯</button>
+      </div>
+    </div>
+  </header>
+  <div class="shell">
+    <aside class="sidebar pages" aria-label="頁面">
+      <div class="side-title"><h2>頁面</h2><button id="add-page" type="button" class="edit-only" title="新增頁面" aria-label="新增頁面">＋</button></div>
+      <nav id="page-list" class="page-list" aria-label="切換頁面"></nav>
+      <button id="delete-page" type="button" class="side-section edit-only" hidden="">刪除此頁</button>
+    </aside>
+    <div id="work" class="work" tabindex="0" aria-label="A4 排版區">
+      <div id="stage" class="stage">
+        <section id="page" class="page" aria-label="目前頁面">
+          <div id="grid-layer" class="grid-layer edit-only" aria-hidden="true"></div>
+          <div id="margin-layer" class="margin-layer edit-only" aria-hidden="true"></div>
+          <div id="objects"></div>
+          <div id="guide-x" class="guide-x edit-only" hidden=""></div>
+          <div id="guide-y" class="guide-y edit-only" hidden=""></div>
+        </section>
+      </div>
+    </div>
+    <aside class="sidebar inspector edit-only" aria-label="物件屬性">
+      <div class="side-title"><h2>對齊</h2></div>
+      <div class="grid-option">
+        <label><input id="show-grid" type="checkbox" checked=""> 格線</label>
+        <select id="grid-step" aria-label="格線間距"><option value="1">1 mm</option><option value="2">2 mm</option><option value="5" selected="">5 mm</option><option value="10">10 mm</option></select>
+        <label title="拖曳時按住 Alt 可暫停吸附"><input id="snap" type="checkbox" checked=""> 吸附</label>
+      </div>
+      <div id="properties" class="side-section" hidden="">
+        <div class="side-title"><h2>位置與尺寸（mm）</h2></div>
+        <div class="measurements">
+          <label>X<input data-geometry="x" type="number" step="0.1"></label>
+          <label>Y<input data-geometry="y" type="number" step="0.1"></label>
+          <label>寬<input data-geometry="w" type="number" min="5" step="0.1"></label>
+          <label>高<input data-geometry="h" type="number" min="5" step="0.1"></label>
+        </div>
+        <div id="graphic-tools" class="measurements transform-options" hidden="">
+          <label>角度（°）<input data-geometry="rotation" type="number" step="0.1"></label>
+          <label class="aspect-lock"><input id="lock-ratio" type="checkbox" checked=""> 鎖定比例</label>
+        </div>
+        <div class="group inspector-actions">
+          <button id="edit-content" type="button">編輯內容</button>
+          <button id="front" type="button">上移一層</button>
+          <button id="back" type="button">下移一層</button>
+          <button id="delete-object" type="button">刪除</button>
+        </div>
+        <div id="symbol-tools" class="inspector-actions" hidden="">
+          <label class="symbol-color">符號顏色<input id="symbol-color" type="color" value="#215d54"></label>
+        </div>
+        <div id="table-tools" class="group inspector-actions table-actions" hidden="">
+          <button id="select-cells" type="button" class="full-width" aria-pressed="false" title="拖曳選取，或依序點選範圍的兩個端點">選取儲存格</button>
+          <button id="merge-horizontal" type="button">橫向合併</button><button id="merge-vertical" type="button">垂直合併</button>
+          <button id="merge-range" type="button" class="full-width">合併範圍</button>
+          <button id="split-columns" type="button" title="切成左右兩格">直切成兩格</button>
+          <button id="split-rows" type="button" title="切成上下兩格">橫切成兩格</button>
+          <button id="add-row" type="button">加列（橫）</button><button id="add-column" type="button">加欄（直）</button>
+          <button id="remove-row" type="button">刪列</button><button id="remove-column" type="button">刪欄</button>
+        </div>
+      </div>
+      <section class="side-section" aria-label="頁面物件">
+        <div class="side-title"><h2>物件</h2></div>
+        <div id="object-list" class="object-list"></div>
+      </section>
+    </aside>
+  </div>
+  <footer class="statusbar"><output id="page-status">A4 · 210 × 297 mm</output><span id="status" role="status"></span></footer>
+</main>
+<div id="print-root" aria-hidden="true"></div>
+<script type="application/json" id="document-data">{"version":1,"title":"院內課程公告","pages":[{"id":"sample-page","objects":[{"id":"sample-title","type":"text","x":15,"y":20,"w":175,"h":18,"html":"\u003ch1>課程公告\u003c/h1>"},{"id":"sample-body","type":"text","x":15,"y":30,"w":170,"h":30,"html":"\u003ch2>一點點，就很不一樣\u003c/h2>\u003cp>觀看本月課程後，請在訓練平台提交簡短心得。\u003c/p>"},{"id":"sample-table","type":"table","x":15,"y":55,"w":150,"h":32,"html":"\u003ctable>\u003cthead>\u003ctr>\u003cth>項目\u003c/th>\u003cth>說明\u003c/th>\u003c/tr>\u003c/thead>\u003ctbody>\u003ctr>\u003ctd>適用對象\u003c/td>\u003ctd>&nbsp; &nbsp; &nbsp; &nbsp;全體同仁\u003c/td>\u003c/tr>\u003ctr>\u003ctd>完成期限\u003c/td>\u003ctd>&nbsp; &nbsp; &nbsp; &nbsp; 11 月 30 日\u003c/td>\u003c/tr>\u003c/tbody>\u003c/table>"},{"id":"96403ad9-3a22-465a-a9a7-ddbdc87fc152","type":"symbol","x":91.02,"y":62.88,"w":10,"h":10,"shape":"check","color":"#215d54"},{"id":"b1169b22-0b1a-4f33-9e00-473fa59b9134","type":"symbol","x":90.46,"y":72.47,"w":9.23,"h":9.23,"shape":"star","color":"#215d54"},{"id":"f2815956-896b-42e6-9034-98a1c43a4921","type":"text","x":150,"y":90,"w":100,"h":25,"html":"\u003cp>隨意編排\u003c/p>"}]}]}</script>
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+const root = document.documentElement;
+const template = root.cloneNode(true);
+const work = $("work"), stage = $("stage"), page = $("page"), objects = $("objects");
+const paper = {w:210,h:297,margin:15};
+const pxPerMM = 96 / 25.4, minSize = 5;
+const types = {text:"文字框",table:"表格",image:"圖片",symbol:"符號"};
+const arrow = "M5 37H57V13L96 50 57 87V63H5Z";
+const symbols = {
+  right:{name:"→ 右箭頭",path:arrow,w:32,h:17},
+  left:{name:"← 左箭頭",path:arrow,w:32,h:17,rotation:180},
+  up:{name:"↑ 上箭頭",path:arrow,w:17,h:32,rotation:270},
+  down:{name:"↓ 下箭頭",path:arrow,w:17,h:32,rotation:90},
+  both:{name:"↔ 雙向箭頭",path:"M4 50 33 14V37H67V14L96 50 67 86V63H33V86Z",w:32,h:17},
+  line:{name:"― 直線",path:"M6 50H94",stroke:7,w:36,h:8},
+  dashed:{name:"┄ 虛線",path:"M6 50H20M31 50H45M55 50H69M80 50H94",stroke:7,w:36,h:8},
+  square:{name:"□ 方框",path:"M12 12H88V88H12Z",stroke:8,w:25,h:25},
+  circle:{name:"○ 圓框",path:"M50 9a41 41 0 1 1 0 82 41 41 0 0 1 0-82Z",stroke:8,w:25,h:25},
+  triangle:{name:"▲ 三角形",path:"M50 8 94 89H6Z",w:25,h:25},
+  diamond:{name:"◆ 菱形",path:"M50 5 95 50 50 95 5 50Z",w:25,h:25},
+  star:{name:"★ 星形",path:"M50 4 63 33 95 37 71 59 77 92 50 76 23 92 29 59 5 37 37 33Z",w:25,h:25},
+  check:{name:"✓ 勾選",path:"M15 52 39 76 85 23",stroke:13,w:20,h:20},
+  cross:{name:"✕ 叉號",path:"M20 20 80 80M80 20 20 80",stroke:13,w:20,h:20},
+  plus:{name:"＋ 加號",path:"M50 16V84M16 50H84",stroke:13,w:20,h:20},
+  warning:{name:"！ 驚嘆號",path:"M50 15V59M50 82H50.1",stroke:13,w:20,h:20},
+};
+const isGraphic = object => object.type === "image" || object.type === "symbol";
+const fixedRatio = object => isGraphic(object) && object.lockRatio !== false;
+const imageType = /^image\/(png|jpeg|gif|webp|bmp|avif)$/i;
+const inlineImage = /^data:image\/(png|jpeg|gif|webp|bmp|avif);base64,[a-z\d+/=\s]+$/i;
+const allowed = new Set("p div span h1 h2 h3 h4 h5 h6 br hr b strong i em u s strike mark sub sup small a img ul ol li table caption colgroup col thead tbody tfoot tr th td blockquote pre code".split(" "));
+const allowedAttrs = {ol:["start","reversed"],li:["value"],col:["span"],td:["rowspan","colspan"],th:["rowspan","colspan","scope"],img:["alt"]};
+const allowedStyles = "color background-color font-family font-size font-weight font-style text-decoration text-align vertical-align line-height width".split(" ");
+const id = () => globalThis.crypto?.randomUUID?.() || Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+const round = value => Math.round(value * 100) / 100;
+const radians = angle => angle * Math.PI / 180;
+const normalizeAngle = angle => ((Math.round((angle % 360) * 100) + 36000) % 36000) / 100;
+const clamp = (value,low,high) => Math.min(high,Math.max(low,value));
+const el = (tag,className) => {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  return node;
+};
+const blank = () => ({id:id(),objects:[]});
+// The saved model stores object geometry in mm. Array order is the back-to-front layer order.
+let model = JSON.parse($("document-data").textContent);
+let pageId = model.pages[0].id, selectedId = null;
+let scale = 1, fitWidth = true, drag = null, editing = null;
+const undo = [], redo = [];
+const currentPage = () => model.pages.find(value => value.id === pageId);
+const selected = () => currentPage().objects.find(value => value.id === selectedId);
+const isReading = () => root.dataset.mode === "read";
+const frames = new Map();
+
+function capture() {
+  return {pageId,selectedId,model:{...model,pages:model.pages.map(value => ({...value,objects:value.objects.map(object => ({...object}))}))}};
+}
+function record(before) {
+  undo.push(before);
+  if (undo.length > 60) undo.shift();
+  redo.length = 0;
+  historyButtons();
+}
+function historyButtons() {
+  $("undo").disabled = !undo.length;
+  $("redo").disabled = !redo.length;
+}
+function stepHistory(stack,opposite) {
+  finishEdit();
+  if (!stack.length) return;
+  opposite.push(capture());
+  const snapshot = stack.pop();
+  ({model,pageId,selectedId} = snapshot);
+  render();
+}
+function status(message = "") { $("status").textContent = message; }
+function setGeometry(frame,object) {
+  frame.style.left = object.x + "mm";
+  frame.style.top = object.y + "mm";
+  frame.style.width = object.w + "mm";
+  frame.style.height = object.h + "mm";
+  frame.style.transform = object.rotation ? "rotate(" + object.rotation + "deg)" : "";
+}
+function buildSymbol(object) {
+  const shape = symbols[object.shape] || symbols.right;
+  const node = tag => document.createElementNS("http://www.w3.org/2000/svg",tag);
+  const svg = node("svg"), path = node("path");
+  svg.setAttribute("viewBox","0 0 100 100");
+  svg.setAttribute("preserveAspectRatio","none");
+  svg.setAttribute("role","img");
+  svg.setAttribute("aria-label",shape.name);
+  path.setAttribute("d",shape.path);
+  path.setAttribute("fill",shape.stroke ? "none" : object.color);
+  if (shape.stroke) {
+    path.setAttribute("stroke",object.color);
+    path.setAttribute("stroke-width",shape.stroke);
+    path.setAttribute("stroke-linecap","round");
+    path.setAttribute("stroke-linejoin","round");
+  }
+  if (shape.rotation) path.setAttribute("transform","rotate(" + shape.rotation + " 50 50)");
+  svg.append(path);
+  return svg;
+}
+function buildItem(object,interactive) {
+  const frame = el("div","item");
+  frame.dataset.kind = object.type;
+  frame.dataset.id = object.id;
+  setGeometry(frame,object);
+  const body = el("div","item-body");
+  if (object.type === "image") {
+    const img = el("img");
+    img.src = object.src;
+    img.alt = object.alt || "";
+    img.draggable = false;
+    body.append(img);
+  } else if (object.type === "symbol") body.append(buildSymbol(object));
+  else body.innerHTML = object.html;
+  frame.append(body);
+  if (interactive) {
+    frame.tabIndex = 0;
+    frame.setAttribute("aria-label",types[object.type]);
+    const resize = el("button","resize");
+    resize.type = "button";
+    resize.title = "調整尺寸";
+    resize.setAttribute("aria-label","拖曳調整尺寸");
+    frame.append(resize);
+    if (isGraphic(object)) {
+      const rotate = el("button","rotate-item");
+      rotate.type = "button";
+      rotate.tabIndex = -1;
+      rotate.title = "拖曳旋轉，按住 Shift 可每 15° 吸附";
+      rotate.setAttribute("aria-label","拖曳旋轉");
+      rotate.textContent = "⟳";
+      frame.append(rotate);
+    }
+  }
+  return frame;
+}
+function render() {
+  document.title = model.title || "未命名文件";
+  $("document-title").value = model.title;
+  $("document-title").readOnly = isReading();
+  $("mode").textContent = isReading() ? "編輯模式" : "閱讀模式";
+  frames.clear();
+  objects.replaceChildren();
+  for (const object of currentPage().objects) {
+    const frame = buildItem(object,!isReading());
+    frames.set(object.id,frame);
+    objects.append(frame);
+  }
+  renderPages();
+  refreshSelection();
+  historyButtons();
+  updateGuides();
+}
+function renderPages() {
+  $("page-list").replaceChildren(...model.pages.map((value,index) => {
+    const button = el("button");
+    button.type = "button";
+    button.textContent = "第 " + (index + 1) + " 頁";
+    button.dataset.page = value.id;
+    button.setAttribute("aria-pressed",String(value.id === pageId));
+    return button;
+  }));
+  $("delete-page").hidden = model.pages.length < 2;
+  $("page-status").textContent = "A4 · 210 × 297 mm · " + (model.pages.findIndex(value => value.id === pageId) + 1) + " / " + model.pages.length;
+}
+function refreshSelection() {
+  const object = selected();
+  for (const [key,frame] of frames) frame.toggleAttribute("data-selected",!isReading() && key === selectedId);
+  $("properties").hidden = !object;
+  $("object-list").replaceChildren(...currentPage().objects.slice().reverse().map(value => {
+    const button = el("button");
+    button.type = "button";
+    button.dataset.object = value.id;
+    const text = frames.get(value.id).querySelector(".item-body").textContent.trim();
+    const detail = value.type === "image" ? value.alt : value.type === "symbol" ? symbols[value.shape]?.name : text;
+    button.textContent = types[value.type] + (detail ? " · " + detail.slice(0,35) : "");
+    button.title = button.textContent;
+    button.setAttribute("aria-pressed",String(value.id === selectedId));
+    return button;
+  }));
+  if (!object) return;
+  for (const input of $("properties").querySelectorAll("[data-geometry]")) input.value = object[input.dataset.geometry] ?? 0;
+  $("edit-content").hidden = isGraphic(object);
+  $("graphic-tools").hidden = !isGraphic(object);
+  $("lock-ratio").checked = fixedRatio(object);
+  $("symbol-tools").hidden = object.type !== "symbol";
+  if (object.type === "symbol") $("symbol-color").value = object.color;
+  $("table-tools").hidden = object.type !== "table";
+  tableEditor.sync();
+  const layer = currentPage().objects.indexOf(object);
+  $("front").disabled = layer === currentPage().objects.length - 1;
+  $("back").disabled = layer === 0;
+}
+function choose(key) {
+  if (selectedId === key) return;
+  finishEdit();
+  selectedId = key;
+  refreshSelection();
+}
+function nav(key) {
+  if (key === pageId) return;
+  finishEdit();
+  pageId = key;
+  selectedId = null;
+  work.scrollTo(0,0);
+  render();
+}
+function setScale(next) {
+  scale = next;
+  stage.style.width = paper.w * scale + "mm";
+  stage.style.height = paper.h * scale + "mm";
+  page.style.transform = "scale(" + scale + ")";
+  $("zoom-reset").textContent = Math.round(scale * 100) + "%";
+  $("zoom-out").disabled = scale <= .2;
+  $("zoom-in").disabled = scale >= 3;
+}
+function fit() {
+  const padding = getComputedStyle(work);
+  const available = work.clientWidth - parseFloat(padding.paddingLeft) - parseFloat(padding.paddingRight);
+  if (available > 0) setScale(clamp(Math.floor(available / (paper.w * pxPerMM) * 100) / 100,.2,1.25));
+}
+function zoom(direction) {
+  fitWidth = false;
+  setScale(clamp((Math.round(scale * 100) + direction * 10) / 100,.2,3));
+}
+function updateGuides() {
+  $("grid-layer").hidden = !$("show-grid").checked;
+  $("margin-layer").hidden = !$("show-grid").checked;
+  page.style.setProperty("--grid-step",$("grid-step").value + "mm");
+}
+function showGuide(axis,position) {
+  const node = $("guide-" + axis);
+  node.hidden = position === null;
+  if (position !== null) node.style[axis === "x" ? "left" : "top"] = position + "mm";
+}
+// Snap the object's edges and center to nearby alignment targets before falling back to the grid.
+function snapAxis(value,anchors,targets,step,tolerance) {
+  let best = null;
+  for (const offset of anchors) {
+    for (const target of targets) {
+      const distance = target - (value + offset);
+      if (Math.abs(distance) <= tolerance && (!best || Math.abs(distance) < Math.abs(best.distance))) {
+        best = {distance,guide:target};
+      }
+    }
+  }
+  return best ? {value:value + best.distance,guide:best.guide} : {value:Math.round(value / step) * step,guide:null};
+}
+function alignmentOffsets(object,axis) {
+  const half = (axis === "x" ? object.w : object.h) / 2;
+  if (!object.rotation) return [0,half,2 * half];
+  const angle = radians(object.rotation);
+  const cross = (axis === "x" ? object.h : object.w) / 2;
+  const extent = half * Math.abs(Math.cos(angle)) + cross * Math.abs(Math.sin(angle));
+  return [half - extent,half,half + extent];
+}
+function alignmentTargets(object,axis) {
+  const size = axis === "x" ? "w" : "h";
+  const limit = paper[size];
+  const targets = [0,paper.margin,limit / 2,limit - paper.margin,limit];
+  for (const other of currentPage().objects) {
+    if (other === object) continue;
+    targets.push(...alignmentOffsets(other,axis).map(offset => other[axis] + offset));
+  }
+  return targets;
+}
+function pointerAngle(event,center) {
+  return Math.atan2(event.clientY - center.y,event.clientX - center.x) * 180 / Math.PI;
+}
+function beginDrag(event) {
+  if (isReading() || !event.isPrimary || event.button !== 0 || drag) return;
+  if (tableEditor.begin(event)) return;
+  const frame = event.target.closest(".item");
+  if (!frame || !objects.contains(frame)) { choose(null); work.focus({preventScroll:true}); return; }
+  if (editing?.id === frame.dataset.id) return;
+  choose(frame.dataset.id);
+  const object = selected();
+  if (!object) return;
+  const rotating = !!event.target.closest(".rotate-item");
+  const action = rotating ? "rotate" : event.target.closest(".resize") ? "resize" : "move";
+  frame.focus({preventScroll:true});
+  drag = {
+    pointer:event.pointerId,frame,object,action,
+    x:event.clientX,y:event.clientY,start:{x:object.x,y:object.y,w:object.w,h:object.h,rotation:object.rotation},
+    targets:{x:alignmentTargets(object,"x"),y:alignmentTargets(object,"y")},before:null,
+  };
+  if (rotating) {
+    const bounds = frame.getBoundingClientRect();
+    drag.center = {x:bounds.left + bounds.width / 2,y:bounds.top + bounds.height / 2};
+    drag.angle = pointerAngle(event,drag.center);
+  }
+  frame.setPointerCapture(event.pointerId);
+}
+function resizeObject(object,start,dx,dy,snap,step) {
+  const angle = radians(start.rotation ?? 0);
+  const cos = Math.cos(angle), sin = Math.sin(angle);
+  const localX = dx * cos + dy * sin, localY = -dx * sin + dy * cos;
+  function edge(axis,size) {
+    if (angle) return {value:step ? Math.round(size / step) * step : size,guide:null};
+    const snapped = snap(axis,start[axis] + size,[0]);
+    return {value:snapped.value - start[axis],guide:snapped.guide};
+  }
+  if (fixedRatio(object)) {
+    const ratio = (start.w * localX + start.h * localY) / (start.w ** 2 + start.h ** 2);
+    const x = edge("x",start.w * (1 + ratio));
+    object.w = round(Math.max(minSize,minSize * start.w / start.h,x.value));
+    object.h = round(object.w * start.h / start.w);
+    showGuide("x",x.guide);
+  } else {
+    const x = edge("x",start.w + localX), y = edge("y",start.h + localY);
+    object.w = round(Math.max(minSize,x.value));
+    object.h = round(Math.max(minSize,y.value));
+    showGuide("x",x.guide);
+    showGuide("y",y.guide);
+  }
+  // Resize along the object's rotated axes while keeping its opposite corner in place.
+  const dw = (object.w - start.w) / 2, dh = (object.h - start.h) / 2;
+  object.x = round(start.x + (cos - 1) * dw - sin * dh);
+  object.y = round(start.y + sin * dw + (cos - 1) * dh);
+}
+function moveDrag(event) {
+  if (tableEditor.move(event)) return;
+  if (drag?.pointer !== event.pointerId) return;
+  const {frame,object,start,action,targets} = drag;
+  const dx = (event.clientX - drag.x) / (scale * pxPerMM);
+  const dy = (event.clientY - drag.y) / (scale * pxPerMM);
+  if (!drag.before && Math.hypot(dx,dy) * scale * pxPerMM < 3) return;
+  drag.before ??= capture();
+  if (action === "rotate") {
+    let angle = (start.rotation ?? 0) + pointerAngle(event,drag.center) - drag.angle;
+    if (event.shiftKey) angle = Math.round(angle / 15) * 15;
+    object.rotation = normalizeAngle(angle);
+    setGeometry(frame,object);
+    return;
+  }
+  const step = Number($("grid-step").value);
+  const tolerance = 6 / (scale * pxPerMM);
+  const snapping = $("snap").checked && !event.altKey;
+  const snap = (axis,value,anchors) => snapping
+    ? snapAxis(value,anchors,targets[axis],step,tolerance) : {value,guide:null};
+  if (action === "resize") {
+    resizeObject(object,start,dx,dy,snap,snapping ? step : 0);
+  } else {
+    const x = snap("x",start.x + dx,alignmentOffsets(start,"x"));
+    const y = snap("y",start.y + dy,alignmentOffsets(start,"y"));
+    object.x = round(x.value);
+    object.y = round(y.value);
+    showGuide("x",x.guide);
+    showGuide("y",y.guide);
+  }
+  setGeometry(frame,object);
+}
+function endDrag(event) {
+  if (tableEditor.end(event)) return;
+  if (drag?.pointer !== event.pointerId) return;
+  const {frame,pointer,before,start,object} = drag;
+  drag = null;
+  if (frame.hasPointerCapture(pointer)) frame.releasePointerCapture(pointer);
+  if (before && event.type !== "pointerup") {
+    Object.assign(object,start);
+    setGeometry(frame,object);
+  } else if (before && Object.keys(start).some(key => (start[key] ?? 0) !== (object[key] ?? 0))) record(before);
+  showGuide("x",null);
+  showGuide("y",null);
+  refreshSelection();
+}
+function startEdit(object) {
+  if (!object || isGraphic(object) || isReading() || editing?.id === object.id) return;
+  finishEdit();
+  selectedId = object.id;
+  const frame = frames.get(object.id), body = frame.querySelector(".item-body");
+  editing = {id:object.id,body,before:capture(),range:null};
+  frame.dataset.editing = "";
+  body.contentEditable = "true";
+  body.setAttribute("aria-label","編輯" + types[object.type]);
+  $("text-tools").hidden = false;
+  body.focus({preventScroll:true});
+  const selection = window.getSelection();
+  if (!body.contains(selection.anchorNode)) {
+    const range = document.createRange();
+    range.selectNodeContents((object.type === "table" && body.querySelector("td,th")) || body);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+  rememberTextRange();
+  refreshSelection();
+}
+function finishEdit() {
+  if (!editing) return;
+  tableEditor.reset();
+  const {id:key,body,before} = editing;
+  editing = null;
+  body.contentEditable = "false";
+  body.removeAttribute("aria-label");
+  delete frames.get(key).dataset.editing;
+  $("text-tools").hidden = true;
+  const object = currentPage().objects.find(value => value.id === key);
+  if (object && object.html !== body.innerHTML) {
+    object.html = body.innerHTML;
+    record(before);
+  }
+  refreshSelection();
+}
+function rememberTextRange() {
+  if (!editing) return;
+  const selection = window.getSelection();
+  if (!selection.rangeCount) return;
+  const range = selection.getRangeAt(0);
+  if (editing.body.contains(range.commonAncestorContainer)) editing.range = range.cloneRange();
+}
+function editCommand(command,value = null) {
+  if (!editing || tableEditor.isPicking()) return;
+  const range = editing.range;
+  editing.body.focus({preventScroll:true});
+  if (range) {
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+  document.execCommand(command,false,value);
+  rememberTextRange();
+}
+function sanitizeHTML(html) {
+  const source = el("template");
+  source.innerHTML = html;
+  const output = el("div");
+  function append(node,parent) {
+    if (node.nodeType === Node.TEXT_NODE) { parent.append(node.data); return; }
+    if (node.nodeType !== Node.ELEMENT_NODE || node.namespaceURI !== "http://www.w3.org/1999/xhtml"
+      || node.matches("script,style,iframe,object,embed,template,svg,math,head,title,form,button,textarea,select,[hidden]")) return;
+    let tag = node.localName;
+    if (!allowed.has(tag) || (tag === "b" && node.id.startsWith("docs-internal-guid-"))) {
+      for (const child of node.childNodes) append(child,parent);
+      return;
+    }
+    if (tag === "p") {
+      const heading = node.className.match(/(?:^|\s)MsoHeading([1-6])(?:\s|$)/i);
+      if (heading) tag = "h" + heading[1];
+    }
+    const copy = el(tag);
+    for (const name of allowedAttrs[tag] || []) {
+      if (node.hasAttribute(name)) copy.setAttribute(name,node.getAttribute(name));
+    }
+    for (const property of allowedStyles) {
+      if (property === "width" && tag !== "img" && tag !== "col") continue;
+      const value = node.style.getPropertyValue(property);
+      if (value) copy.style.setProperty(property,value);
+    }
+    if (tag === "img") {
+      const src = node.getAttribute("src") || "";
+      if (!inlineImage.test(src)) { if (copy.alt) parent.append(copy.alt); return; }
+      copy.src = src;
+    }
+    if (tag === "a") {
+      const href = node.getAttribute("href")?.trim() || "";
+      if (/^https?:\/\//i.test(href)) { copy.href = href; copy.target = "_blank"; copy.rel = "noopener noreferrer"; }
+    }
+    for (const child of node.childNodes) append(child,copy);
+    parent.append(copy);
+  }
+  const body = source.content.querySelector("#app #paper.doc") || source.content;
+  for (const child of body.childNodes) append(child,output);
+  return output;
+}
+function paste(event) {
+  if (isReading() || !event.clipboardData || event.target.closest("input,textarea,select")) return;
+  if (tableEditor.isPicking()) { event.preventDefault(); return; }
+  const clipboard = event.clipboardData;
+  const html = clipboard.getData("text/html");
+  const rich = html ? sanitizeHTML(html) : null;
+  const text = clipboard.getData("text/plain");
+  const hasRich = rich && (rich.textContent.trim() || rich.querySelector("img,table,hr"));
+  const image = Array.from(clipboard.files).find(file => imageType.test(file.type));
+  if (!hasRich && !text && !image) return;
+  event.preventDefault();
+  if (editing && editing.body.contains(event.target)) {
+    rememberTextRange();
+    if (hasRich) editCommand("insertHTML",rich.innerHTML);
+    else if (text) editCommand("insertText",text);
+    else loadImage(image);
+    return;
+  }
+  if (hasRich) {
+    const items = Array.from(rich.childNodes).filter(node => node.nodeType !== Node.TEXT_NODE || node.data.trim());
+    const only = items.length === 1 ? rich.firstElementChild : null;
+    if (only?.matches("img")) insertImage(only.src,only.alt,only.naturalWidth,only.naturalHeight);
+    else addObject(only?.matches("table") ? "table" : "text",{html:rich.innerHTML});
+  } else if (image) loadImage(image);
+  else {
+    const box = el("div");
+    for (const line of text.split(/\r?\n/)) {
+      const paragraph = el("p");
+      if (line) paragraph.textContent = line;
+      else paragraph.append(el("br"));
+      box.append(paragraph);
+    }
+    addObject("text",{html:box.innerHTML});
+  }
+}
+function newTable() {
+  return "<table><thead><tr><th>欄位 1</th><th>欄位 2</th></tr></thead><tbody><tr><td><br></td><td><br></td></tr><tr><td><br></td><td><br></td></tr></tbody></table>";
+}
+function addObject(type,values = {},target = currentPage()) {
+  finishEdit();
+  const before = capture();
+  const offset = target.objects.length % 7 * 5;
+  const object = {
+    id:id(),type,x:15 + offset,y:15 + offset,w:type === "text" ? 100 : 95,h:type === "text" ? 25 : 32,
+    ...values,
+  };
+  target.objects.push(object);
+  if (target.id === pageId) selectedId = object.id;
+  record(before);
+  render();
+  if (target.id === pageId) frames.get(object.id).focus({preventScroll:true});
+  return object;
+}
+function insertImage(src,alt,width,height,target = currentPage()) {
+  const image = new Image();
+  image.src = src;
+  const place = () => {
+    if (!model.pages.includes(target) || isReading()) return;
+    const aspect = (width || image.naturalWidth) / (height || image.naturalHeight) || 1;
+    const w = Math.max(5,Math.min(85,120 * aspect));
+    addObject("image",{src,alt,w:round(w),h:round(w / aspect)},target);
+  };
+  if (width && height) place();
+  else image.decode().then(place,() => status("圖片讀取失敗"));
+}
+function loadImage(file) {
+  if (!file || !imageType.test(file.type)) return;
+  const target = currentPage();
+  const reader = new FileReader();
+  reader.onload = () => insertImage(reader.result,file.name,0,0,target);
+  reader.onerror = () => status("圖片讀取失敗");
+  reader.readAsDataURL(file);
+}
+function changeGeometry(key,number) {
+  finishEdit();
+  const object = selected();
+  if (!object || !Number.isFinite(number)) { refreshSelection(); return; }
+  if (key === "rotation" && !isGraphic(object)) return;
+  const before = capture();
+  let value = key === "rotation" ? normalizeAngle(number) : round(number);
+  if (key === "w" || key === "h") {
+    const other = key === "w" ? "h" : "w";
+    value = Math.max(minSize,value);
+    if (fixedRatio(object)) {
+      value = Math.max(value,round(minSize * object[key] / object[other]));
+      object[other] = round(object[other] * value / object[key]);
+    }
+  }
+  if ((object[key] ?? 0) !== value) { object[key] = value; record(before); }
+  setGeometry(frames.get(object.id),object);
+  refreshSelection();
+}
+function changeLayer(direction) {
+  finishEdit();
+  const object = selected(), list = currentPage().objects;
+  const from = list.indexOf(object), to = from + direction;
+  if (!object || !list[to]) return;
+  const before = capture();
+  [list[from],list[to]] = [list[to],list[from]];
+  record(before);
+  render();
+}
+function deleteObject() {
+  const object = selected();
+  if (!object) return;
+  finishEdit();
+  const before = capture(), list = currentPage().objects;
+  list.splice(list.indexOf(object),1);
+  selectedId = null;
+  record(before);
+  render();
+}
+/* Native cell spans map to a logical grid, including slots covered by merged cells. */
+function tableGrid(table) {
+  const rows = Array.from(table.rows), slots = rows.map(() => []), cells = new Map();
+  let sectionEnd = 0, width = 0;
+  for (const [top,row] of rows.entries()) {
+    if (top === sectionEnd) {
+      sectionEnd++;
+      while (rows[sectionEnd]?.parentElement === row.parentElement) sectionEnd++;
+    }
+    let left = 0;
+    for (const cell of row.cells) {
+      while (slots[top][left]) left++;
+      const bottom = Math.min(top + (cell.rowSpan || sectionEnd - top),sectionEnd);
+      const right = left + cell.colSpan;
+      const area = {cell,top,bottom,left,right};
+      cells.set(cell,area);
+      for (let y = top; y < bottom; y++) {
+        for (let x = left; x < right; x++) slots[y][x] = area;
+      }
+      left = right;
+      width = Math.max(width,right);
+    }
+  }
+  return {table,rows,slots,cells,width};
+}
+
+function columnGroup(table) {
+  return Array.from(table.children).find(child => child.localName === "colgroup");
+}
+function readColumnWidths(grid) {
+  const group = columnGroup(grid.table);
+  const columns = group ? Array.from(group.children) : [];
+  if (columns.length === grid.width && columns.every(col => col.style.width.endsWith("%"))) {
+    const widths = columns.map(col => parseFloat(col.style.width));
+    const total = widths.reduce((sum,width) => sum + width,0);
+    if (widths.every(width => width > 0)) return widths.map(width => width * 100 / total);
+  }
+  return Array(grid.width).fill(100 / grid.width);
+}
+function writeColumnWidths(table,widths) {
+  let group = columnGroup(table);
+  if (!group) {
+    group = el("colgroup");
+    const before = Array.from(table.children).find(child => child.localName !== "caption");
+    table.insertBefore(group,before || null);
+  }
+  const total = widths.reduce((sum,width) => sum + width,0);
+  group.replaceChildren(...widths.map(width => {
+    const col = el("col");
+    col.style.width = (width * 100 / total).toFixed(8) + "%";
+    return col;
+  }));
+}
+
+const tableEditor = (() => {
+  function blankCell(row,tag = "td",before = null) {
+    const cell = el(tag);
+    cell.append(el("br"));
+    row.insertBefore(cell,before);
+    return cell;
+  }
+  function bounds(areas) {
+    return areas.reduce((box,{top,bottom,left,right}) => ({
+      top:Math.min(box.top,top), bottom:Math.max(box.bottom,bottom),
+      left:Math.min(box.left,left), right:Math.max(box.right,right),
+    }),areas[0]);
+  }
+  function setSpan(cell,attribute,count) {
+    if (count > 1) cell.setAttribute(attribute,count);
+    else cell.removeAttribute(attribute);
+  }
+  function merge(grid,areas) {
+    const {top,bottom,left,right} = bounds(areas), target = areas[0].cell;
+    const groups = Array.from(new Set(grid.rows.slice(top,bottom).map(row => row.parentElement)));
+    if (groups.length > 1) {
+      // HTML rowspans stay within a row group. Keep TH cells and join the affected sections.
+      const body = groups.find(group => group.localName === "tbody") || el("tbody");
+      if (!body.parentElement) groups[0].before(body);
+      for (const area of grid.cells.values()) {
+        if (groups.includes(area.cell.parentElement.parentElement) && area.cell.rowSpan !== area.bottom - area.top) {
+          setSpan(area.cell,"rowspan",area.bottom - area.top);
+        }
+      }
+      body.append(...grid.rows.filter(row => groups.includes(row.parentElement)));
+      for (const group of groups) if (group !== body) group.remove();
+    }
+    const hasContent = cell => cell.textContent.replace(/[\s\u200B\uFEFF]/gu,"") || cell.querySelector("img,hr,table,svg,video,audio");
+    if (!hasContent(target)) target.replaceChildren();
+    for (const {cell} of areas.slice(1)) {
+      if (hasContent(cell)) {
+        const blocks = "p,div,h1,h2,h3,h4,h5,h6,ol,ul,table,hr,pre,blockquote,figure,section";
+        if (target.lastChild && !target.lastChild.matches?.(blocks) && !cell.firstChild?.matches?.(blocks)) target.append(el("br"));
+        target.append(...cell.childNodes);
+      }
+      cell.remove();
+    }
+    if (!target.firstChild) target.append(el("br"));
+    setSpan(target,"rowspan",bottom - top);
+    setSpan(target,"colspan",right - left);
+    return target;
+  }
+  function addRow(grid,area) {
+    const last = grid.rows[area.bottom - 1], next = grid.rows[area.bottom];
+    const section = last.parentElement;
+    const before = next?.parentElement === section ? next : null;
+    if (section === grid.table.tHead && !before) {
+      const body = grid.table.tBodies[0] || grid.table.createTBody();
+      const row = body.insertRow(0);
+      for (let x = 0; x < grid.width; x++) blankCell(row);
+      return;
+    }
+    const row = section.insertBefore(el("tr"),before), covered = new Set();
+    for (const entry of grid.cells.values()) {
+      if (entry.cell.parentElement.parentElement !== section) continue;
+      const crosses = entry.top < area.bottom && entry.bottom > area.bottom;
+      if (crosses || entry.cell.rowSpan !== entry.bottom - entry.top) {
+        setSpan(entry.cell,"rowspan",entry.bottom - entry.top + Number(crosses));
+      }
+      if (crosses) for (let x = entry.left; x < entry.right; x++) covered.add(x);
+    }
+    const tag = section === grid.table.tHead ? "th" : "td";
+    for (let x = 0; x < grid.width; x++) if (!covered.has(x)) blankCell(row,tag);
+  }
+  function removeRow(grid,index) {
+    if (grid.rows.length < 2) return false;
+    const row = grid.rows[index], next = grid.rows[index + 1];
+    const nextCells = Array.from(next?.cells || [],cell => grid.cells.get(cell));
+    for (const {cell,top,bottom,left} of grid.cells.values()) {
+      if (top > index || bottom <= index || bottom - top < 2) continue;
+      setSpan(cell,"rowspan",bottom - top - 1);
+      if (top === index) next.insertBefore(cell,nextCells.find(item => item.left > left)?.cell || null);
+    }
+    row.remove();
+    return true;
+  }
+  function addColumn(grid,index) {
+    const widths = columnGroup(grid.table) && readColumnWidths(grid);
+    const widened = new Set();
+    for (const [y,row] of grid.rows.entries()) {
+      const previous = grid.slots[y][index - 1];
+      if (previous?.right > index) {
+        if (!widened.has(previous)) setSpan(previous.cell,"colspan",previous.right - previous.left + 1);
+        widened.add(previous);
+      } else {
+        const before = Array.from(row.cells).find(cell => grid.cells.get(cell).left >= index);
+        const tag = previous?.cell.localName || before?.localName || (row.parentElement === grid.table.tHead ? "th" : "td");
+        blankCell(row,tag,before || null);
+      }
+    }
+    if (widths) {
+      widths.splice(index,0,100 / grid.width);
+      writeColumnWidths(grid.table,widths);
+    }
+  }
+  function removeColumn(grid,index) {
+    if (grid.width < 2) return false;
+    const widths = columnGroup(grid.table) && readColumnWidths(grid);
+    for (const {cell,left,right} of grid.cells.values()) {
+      if (left > index || right <= index) continue;
+      if (right - left > 1) setSpan(cell,"colspan",right - left - 1);
+      else cell.remove();
+    }
+    if (widths) {
+      widths.splice(index,1);
+      writeColumnWidths(grid.table,widths);
+    }
+    return true;
+  }
+  function splitColumns(grid,{cell,top,bottom,left,right}) {
+    const widths = readColumnWidths(grid);
+    let cut = left + 1, end = right;
+    if (right - left === 1) {
+      // Divide this column's width and let other rows keep their original cell boundaries.
+      const half = widths[left] / 2;
+      widths.splice(left,1,half,half);
+      for (const area of grid.cells.values()) {
+        if (area.cell !== cell && area.left <= left && left < area.right) {
+          setSpan(area.cell,"colspan",area.right - area.left + 1);
+        }
+      }
+      writeColumnWidths(grid.table,widths);
+      end++;
+    } else {
+      const midpoint = widths.slice(left,right).reduce((sum,width) => sum + width,0) / 2;
+      let distance = Infinity, offset = 0;
+      for (let boundary = left + 1; boundary < right; boundary++) {
+        offset += widths[boundary - 1];
+        const gap = Math.abs(midpoint - offset);
+        if (gap < distance) { cut = boundary; distance = gap; }
+      }
+    }
+    const added = blankCell(cell.parentElement,cell.localName,cell.nextElementSibling);
+    setSpan(cell,"rowspan",bottom - top);
+    setSpan(cell,"colspan",cut - left);
+    setSpan(added,"rowspan",bottom - top);
+    setSpan(added,"colspan",end - cut);
+  }
+  function splitRows(grid,{cell,top,bottom,left,right}) {
+    const cut = top + Math.max(1,Math.floor((bottom - top) / 2));
+    let row = grid.rows[cut], end = bottom, before = null;
+    if (cut === bottom) {
+      // Add a row just below this cell, with its neighbors spanning the two rows.
+      row = el("tr");
+      cell.parentElement.after(row);
+      for (const area of grid.cells.values()) {
+        if (area.cell !== cell && area.top <= top && top < area.bottom) {
+          setSpan(area.cell,"rowspan",area.bottom - area.top + 1);
+        }
+      }
+      end++;
+    } else {
+      before = Array.from(row.cells).find(other => grid.cells.get(other).left > left) || null;
+    }
+    const added = blankCell(row,cell.localName,before);
+    setSpan(cell,"rowspan",cut - top);
+    setSpan(added,"rowspan",end - cut);
+    setSpan(added,"colspan",right - left);
+  }
+  let picking = false, anchor = null, pointer = null, selection = null;
+  function cellAt(node) {
+    const cell = node?.closest?.("td,th");
+    return editing?.body.contains(cell) ? cell : null;
+  }
+  function activeCell() {
+    const node = editing?.range?.startContainer;
+    return cellAt(node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement);
+  }
+  function unmark() {
+    for (const {cell} of selection?.areas || []) cell.removeAttribute("data-cell-picked");
+    selection = null;
+  }
+  function reset() {
+    const active = pointer;
+    pointer = null;
+    anchor = null;
+    if (active?.frame.hasPointerCapture(active.id)) active.frame.releasePointerCapture(active.id);
+    unmark();
+    if (editing) {
+      frames.get(editing.id)?.removeAttribute("data-picking-cells");
+      if (picking) $("text-tools").hidden = false;
+    }
+    picking = false;
+  }
+  function sync() {
+    $("select-cells").setAttribute("aria-pressed",String(picking));
+    const areas = selection?.areas || [];
+    const multi = !!selection?.complete && areas.length > 1;
+    const box = multi ? bounds(areas) : null;
+    $("merge-horizontal").disabled = !multi || !areas.every(area => area.top === box.top && area.bottom === box.bottom);
+    $("merge-vertical").disabled = !multi || !areas.every(area => area.left === box.left && area.right === box.right);
+    $("merge-range").disabled = !multi;
+    const single = areas.length === 1 || (!areas.length && !!activeCell());
+    for (const action of ["split-columns","split-rows","remove-row","remove-column"]) $(action).disabled = !single;
+  }
+  function select(start,end) {
+    const grid = tableGrid(start.closest("table"));
+    const first = grid.cells.get(start), last = grid.cells.get(end);
+    if (!first || !last) return;
+    let box = bounds([first,last]), areas, complete, expanded;
+    do {
+      const inside = new Set();
+      for (let y = box.top; y < box.bottom; y++) {
+        for (let x = box.left; x < box.right; x++) inside.add(grid.slots[y][x]);
+      }
+      complete = !inside.delete(undefined);
+      areas = Array.from(inside).sort((a,b) => a.top - b.top || a.left - b.left);
+      const next = bounds(areas);
+      expanded = box.top !== next.top || box.bottom !== next.bottom || box.left !== next.left || box.right !== next.right;
+      box = next;
+    } while (expanded);
+    unmark();
+    selection = {areas,complete};
+    for (const {cell} of areas) cell.setAttribute("data-cell-picked","");
+    sync();
+  }
+  function toggle() {
+    if (picking) { reset(); sync(); return; }
+    const object = selected();
+    if (object?.type !== "table") return;
+    startEdit(object);
+    picking = true;
+    frames.get(object.id).setAttribute("data-picking-cells","");
+    $("text-tools").hidden = true;
+    sync();
+  }
+  function begin(event) {
+    if (!picking || pointer) return false;
+    const cell = cellAt(event.target);
+    if (!cell) return false;
+    event.preventDefault();
+    const frame = frames.get(editing.id);
+    const extending = anchor?.closest("table") === cell.closest("table");
+    const start = extending ? anchor : cell;
+    select(start,cell);
+    pointer = {id:event.pointerId,frame,start,last:cell,extending,moved:false};
+    frame.setPointerCapture(event.pointerId);
+    return true;
+  }
+  function move(event) {
+    if (pointer?.id !== event.pointerId) return false;
+    const next = cellAt(document.elementFromPoint(event.clientX,event.clientY));
+    if (next && next !== pointer.last && next.closest("table") === pointer.start.closest("table")) {
+      pointer.last = next;
+      pointer.moved = true;
+      select(pointer.start,next);
+    }
+    return true;
+  }
+  function end(event) {
+    if (pointer?.id !== event.pointerId) return false;
+    const {frame,id,start,extending,moved} = pointer;
+    pointer = null;
+    anchor = event.type === "pointerup" && !extending && !moved ? start : null;
+    if (frame.hasPointerCapture(id)) frame.releasePointerCapture(id);
+    if (event.type !== "pointerup") unmark();
+    sync();
+    return true;
+  }
+  function change(action) {
+    const object = selected();
+    if (object?.type !== "table" || $(action).disabled) return;
+    const inEdit = editing?.id === object.id;
+    const body = frames.get(object.id).querySelector(".item-body");
+    const areas = selection?.areas || [];
+    const cell = areas[0]?.cell || activeCell();
+    const table = cell?.closest("table") || body.querySelector("table");
+    if (!table) return;
+    const grid = tableGrid(table), area = grid.cells.get(cell);
+    finishEdit();
+    const before = capture();
+    const previousHTML = object.html;
+    let target = cell;
+    if (action.startsWith("merge-")) target = merge(grid,areas);
+    if (action === "split-columns") splitColumns(grid,area);
+    if (action === "split-rows") splitRows(grid,area);
+    if (action === "add-row") {
+      if (grid.rows.length) addRow(grid,area || {bottom:grid.rows.length});
+      else blankCell((table.tBodies[0] || table.createTBody()).insertRow());
+    }
+    if (action === "add-column") {
+      if (grid.rows.length) addColumn(grid,area?.right ?? grid.width);
+      else blankCell((table.tBodies[0] || table.createTBody()).insertRow());
+    }
+    if (action === "remove-row") removeRow(grid,area.top);
+    if (action === "remove-column") removeColumn(grid,area.left);
+    if (body.innerHTML !== previousHTML) {
+      object.html = body.innerHTML;
+      record(before);
+    }
+    if (inEdit) {
+      startEdit(object);
+      if (!body.contains(target)) target = table.querySelector("td,th");
+      if (target) {
+        const range = document.createRange(), nativeSelection = window.getSelection();
+        range.selectNodeContents(target);
+        range.collapse(true);
+        nativeSelection.removeAllRanges();
+        nativeSelection.addRange(range);
+        rememberTextRange();
+      }
+    }
+    refreshSelection();
+  }
+  return {sync,reset,toggle,begin,move,end,change,isPicking:() => picking};
+})();
+
+function syncTitle() {
+  if (isReading()) return;
+  const input = $("document-title");
+  const title = input.value.trim() || "未命名文件";
+  if (title !== model.title) {
+    finishEdit();
+    const before = capture();
+    model.title = title;
+    record(before);
+  }
+  input.value = model.title;
+  document.title = model.title;
+}
+function printPages() {
+  syncTitle();
+  finishEdit();
+  const output = $("print-root");
+  output.replaceChildren();
+  for (const value of model.pages) {
+    const sheet = el("section","print-page");
+    for (const object of value.objects) sheet.append(buildItem(object,false));
+    output.append(sheet);
+  }
+}
+function saveHTML() {
+  syncTitle();
+  finishEdit();
+  const saved = template.cloneNode(true);
+  saved.dataset.mode = "read";
+  const title = model.title.trim() || "未命名文件";
+  saved.querySelector("title").textContent = title;
+  saved.querySelector("#document-data").textContent = JSON.stringify(model).replaceAll("<","\\u003c");
+  const url = URL.createObjectURL(new Blob(["<!doctype html>\n",saved.outerHTML],{type:"text/html;charset=utf-8"}));
+  const link = el("a");
+  link.href = url;
+  link.download = (title.replace(/[\\/:*?"<>|]/g,"_").replace(/\.html?$/i,"") || "未命名文件") + ".html";
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url),60_000);
+  status("已開始下載");
+}
+
+page.addEventListener("pointerdown",beginDrag);
+page.addEventListener("pointermove",moveDrag);
+for (const name of ["pointerup","pointercancel","lostpointercapture"]) page.addEventListener(name,endDrag);
+page.addEventListener("dblclick",event => {
+  const frame = event.target.closest(".item");
+  if (frame && frames.get(frame.dataset.id) === frame) {
+    choose(frame.dataset.id);
+    startEdit(selected());
+  }
+});
+page.addEventListener("click",event => {
+  if (!isReading() && event.target.closest("a")) event.preventDefault();
+});
+page.addEventListener("focusin",event => {
+  const frame = event.target.closest(".item");
+  if (frame && !isReading()) choose(frame.dataset.id);
+});
+page.addEventListener("dragover",event => {
+  if (!isReading() && Array.from(event.dataTransfer.items).some(item => imageType.test(item.type))) event.preventDefault();
+});
+page.addEventListener("drop",event => {
+  if (isReading()) return;
+  event.preventDefault();
+  const file = Array.from(event.dataTransfer.files).find(item => imageType.test(item.type));
+  if (file) loadImage(file);
+});
+document.addEventListener("paste",paste);
+objects.addEventListener("beforeinput",event => {
+  if (tableEditor.isPicking()) event.preventDefault();
+});
+document.addEventListener("selectionchange",() => {
+  rememberTextRange();
+  if (editing && selected()?.type === "table") tableEditor.sync();
+});
+$("text-tools").addEventListener("pointerdown",event => {
+  rememberTextRange();
+  if (event.target.closest("button")) event.preventDefault();
+});
+$("text-tools").addEventListener("click",event => {
+  const command = event.target.closest("[data-command]")?.dataset.command;
+  if (command) editCommand(command);
+});
+$("format").addEventListener("change",event => {
+  const {value} = event.target;
+  if (value) editCommand("formatBlock","<" + value + ">");
+  event.target.value = "";
+});
+$("finish-edit").addEventListener("click",() => { const frame = frames.get(selectedId); finishEdit(); frame?.focus(); });
+$("edit-content").addEventListener("click",() => startEdit(selected()));
+$("page-list").addEventListener("click",event => {
+  const button = event.target.closest("[data-page]");
+  if (button) nav(button.dataset.page);
+});
+$("object-list").addEventListener("click",event => {
+  const button = event.target.closest("[data-object]");
+  if (button) choose(button.dataset.object);
+});
+for (const button of document.querySelectorAll("[data-add]")) {
+  button.addEventListener("click",() => {
+    if (button.dataset.add === "image") $("image-file").click();
+    else if (button.dataset.add === "table") addObject("table",{html:newTable()});
+    else startEdit(addObject("text",{html:"<p><br></p>"}));
+  });
+}
+for (const [key,shape] of Object.entries(symbols)) {
+  const option = el("option");
+  option.value = key;
+  option.textContent = shape.name;
+  $("symbol-picker").append(option);
+}
+$("symbol-picker").addEventListener("change",event => {
+  const key = event.target.value;
+  const shape = symbols[key];
+  if (shape && Object.hasOwn(symbols,key)) addObject("symbol",{shape:key,color:"#215d54",w:shape.w,h:shape.h});
+  event.target.value = "";
+});
+$("symbol-color").addEventListener("change",event => {
+  const object = selected(), color = event.target.value;
+  if (object?.type !== "symbol" || object.color === color) return;
+  const before = capture();
+  object.color = color;
+  frames.get(object.id).querySelector(".item-body").replaceChildren(buildSymbol(object));
+  record(before);
+});
+$("image-file").addEventListener("change",event => {
+  loadImage(event.target.files[0]);
+  event.target.value = "";
+});
+$("properties").addEventListener("change",event => {
+  const key = event.target.dataset.geometry;
+  if (key) changeGeometry(key,event.target.valueAsNumber);
+});
+$("lock-ratio").addEventListener("change",event => {
+  const object = selected(), locked = event.target.checked;
+  if (!object || !isGraphic(object) || fixedRatio(object) === locked) return;
+  const before = capture();
+  object.lockRatio = locked;
+  record(before);
+});
+$("front").addEventListener("click",() => changeLayer(1));
+$("back").addEventListener("click",() => changeLayer(-1));
+$("delete-object").addEventListener("click",deleteObject);
+$("select-cells").addEventListener("click",tableEditor.toggle);
+for (const action of ["add-row","add-column","remove-row","remove-column",
+  "merge-horizontal","merge-vertical","merge-range","split-columns","split-rows"]) {
+  $(action).addEventListener("click",() => tableEditor.change(action));
+}
+$("add-page").addEventListener("click",() => {
+  finishEdit();
+  const before = capture(), next = blank();
+  model.pages.splice(model.pages.indexOf(currentPage()) + 1,0,next);
+  record(before);
+  nav(next.id);
+});
+$("delete-page").addEventListener("click",() => {
+  if (model.pages.length < 2) return;
+  if (currentPage().objects.length && !confirm("刪除此頁和頁面上的物件？")) return;
+  finishEdit();
+  const before = capture(), index = model.pages.indexOf(currentPage());
+  model.pages.splice(index,1);
+  record(before);
+  nav(model.pages[Math.min(index,model.pages.length - 1)].id);
+});
+$("new-file").addEventListener("click",() => {
+  if (!confirm("開始一份空白文件？")) return;
+  finishEdit();
+  const before = capture(), first = blank();
+  model = {version:1,title:"未命名文件",pages:[first]};
+  record(before);
+  nav(first.id);
+});
+$("document-title").addEventListener("change",syncTitle);
+$("mode").addEventListener("click",() => {
+  finishEdit();
+  root.dataset.mode = isReading() ? "edit" : "read";
+  selectedId = null;
+  render();
+});
+$("show-grid").addEventListener("change",updateGuides);
+$("grid-step").addEventListener("change",updateGuides);
+$("zoom-out").addEventListener("click",() => zoom(-1));
+$("zoom-in").addEventListener("click",() => zoom(1));
+$("zoom-reset").addEventListener("click",() => { fitWidth = false; setScale(1); });
+$("zoom-fit").addEventListener("click",() => { fitWidth = true; fit(); });
+$("undo").addEventListener("click",() => stepHistory(undo,redo));
+$("redo").addEventListener("click",() => stepHistory(redo,undo));
+$("save").addEventListener("click",saveHTML);
+$("print").addEventListener("click",() => { printPages(); window.print(); });
+window.addEventListener("beforeprint",printPages);
+window.addEventListener("afterprint",() => $("print-root").replaceChildren());
+document.addEventListener("keydown",event => {
+  if (drag) {
+    if (event.key === "Escape") endDrag({pointerId:drag.pointer,type:"pointercancel"});
+    return;
+  }
+  const command = event.ctrlKey || event.metaKey, key = event.key.toLowerCase();
+  if (command && key === "s") { event.preventDefault(); saveHTML(); return; }
+  if (isReading() || event.target.closest("input,textarea,select")) return;
+  if (event.key === "Escape") {
+    if (editing) { const frame = frames.get(selectedId); finishEdit(); frame?.focus(); }
+    else choose(null);
+    return;
+  }
+  const history = command && (key === "z" || key === "y");
+  if (editing && editing.body.contains(event.target)
+      && (!history || editing.body.innerHTML !== selected()?.html)) return;
+  if (history) {
+    event.preventDefault();
+    if (key === "y" || event.shiftKey) stepHistory(redo,undo);
+    else stepHistory(undo,redo);
+    return;
+  }
+  const frame = event.target.closest(".item");
+  if (!frame || frame.dataset.id !== selectedId) return;
+  if (event.key === "Enter") { event.preventDefault(); startEdit(selected()); }
+  if (event.key === "Delete" || event.key === "Backspace") { event.preventDefault(); deleteObject(); }
+  const movement = {ArrowLeft:["x",-1],ArrowRight:["x",1],ArrowUp:["y",-1],ArrowDown:["y",1]}[event.key];
+  if (movement) {
+    event.preventDefault();
+    const [axis,direction] = movement;
+    changeGeometry(axis,selected()[axis] + direction * (event.shiftKey ? 5 : 1));
+  }
+});
+new ResizeObserver(() => { if (fitWidth) fit(); }).observe(work);
+render();
+setScale(1);
+fit();
+})();
+</script></body></html>
