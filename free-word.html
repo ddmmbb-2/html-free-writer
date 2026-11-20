@@ -2,9 +2,9 @@
 <html lang="zh-Hant" data-mode="read"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>院內課程公告</title>
+<title>自由模式WORD</title>
 <style>
-:root{color-scheme:light;--ink:#20282a;--muted:#526063;--line:#dde3e2;--panel:#fff;--work:#e9eeec;--accent:#215d54;--accent-light:#e7f2ee;--guide:#007e9d;font:14px/1.5 "Inter","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;color:var(--ink)}
+:root{color-scheme:light;--ink:#20282a;--muted:#526063;--line:#dde3e2;--panel:#fff;--work:#e9eeec;--accent:#215d54;--accent-light:#e7f2ee;--guide:#007e9d;--danger:#c83e3b;--danger-light:#fdf0ef;--danger-line:#e4a3a1;font:14px/1.5 "Inter","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;color:var(--ink)}
 *{box-sizing:border-box}
 body{margin:0}
 button,input,select{font:inherit;color:inherit}
@@ -15,6 +15,8 @@ button:disabled{opacity:.45;cursor:default}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #268172;outline-offset:2px}
 button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;color:var(--accent)}
 .primary,.primary:hover{color:white;background:var(--accent);border-color:var(--accent)}
+.danger-action{color:var(--danger);background:var(--danger-light);border-color:var(--danger-line);font-weight:600}
+.danger-action:hover{background:#fae0de;border-color:var(--danger)}
 [hidden]{display:none!important}
 #editor{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 .chrome{flex:none;background:var(--panel);z-index:2}
@@ -41,6 +43,8 @@ button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;
 .side-section{margin-top:17px}
 .work{overflow:auto;background:var(--work);padding:22px 24px 54px;overscroll-behavior:contain}
 .stage{position:relative;margin-inline:auto;overflow:clip;overflow-clip-margin:18px}
+.read-pages{display:none;flex-direction:column;gap:22px}
+.read-stage{flex:none}
 .page{position:absolute;inset:0 auto auto 0;width:210mm;height:297mm;background:white;transform-origin:top left;box-shadow:0 0 0 1px #52696141,0 10px 32px #21362e1c;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .grid-layer{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(to right,#628f8824 1px,transparent 1px),linear-gradient(to bottom,#628f8824 1px,transparent 1px);background-size:var(--grid-step,5mm) var(--grid-step,5mm)}
 .margin-layer{position:absolute;inset:15mm;border:1px dashed #789d95a0;pointer-events:none}
@@ -50,6 +54,13 @@ button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;
 .item{position:absolute;touch-action:none;cursor:move;user-select:none}
 .item:focus{outline:none}
 .item[data-selected]{outline:1.5px solid #177c6e}
+.item[data-overflow]{outline:1.5px dashed var(--danger)}
+.item[data-selected][data-overflow]{outline:1.5px solid var(--danger)}
+.overflow-line{display:none;position:absolute;left:0;right:0;border-top:1.5px dashed var(--danger);pointer-events:none;z-index:2}
+.overflow-line::after{content:attr(data-label);position:absolute;right:0;top:2px;padding:1px 5px;border-radius:3px;background:var(--danger);color:white;font:600 10px/1.3 "Inter","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;white-space:nowrap}
+.item[data-overflow] .overflow-line{display:block}
+.object-list button[data-overflow]{color:var(--danger);border-color:var(--danger-line)}
+#overflow-tools button{width:100%}
 .item:focus-visible{outline:2px solid #177c6e}
 .item-body{min-height:100%;width:100%;font:12pt/1.55 "Microsoft JhengHei","Noto Sans CJK TC","PingFang TC",system-ui,sans-serif;overflow-wrap:anywhere;color:#1f2d2b}
 .item-body:focus{outline:none}
@@ -96,6 +107,8 @@ button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;
 [data-mode="read"] .edit-only{display:none!important}
 [data-mode="read"] .read-only{display:initial}
 [data-mode="read"] .shell{grid-template-columns:164px minmax(0,1fr)}
+[data-mode="read"] #stage{display:none}
+[data-mode="read"] .read-pages{display:flex}
 [data-mode="read"] .page{overflow:hidden}
 [data-mode="read"] .item{cursor:auto;touch-action:auto;user-select:text}
 #print-root{display:none}
@@ -117,6 +130,7 @@ button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;
   .object-list button{width:auto;flex:none;max-width:155px}
   .top,.toolbar{padding:5px 7px}
   .work{padding:12px 9px 42px}
+  .read-pages{gap:14px}
   .top .group,.toolbar,.toolbar .group{gap:4px}
   .top button,.toolbar button,.toolbar select{min-height:29px;padding:3px 6px}
 }
@@ -183,6 +197,9 @@ button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;
         <button type="button" data-command="insertUnorderedList">清單</button>
         <button id="finish-edit" type="button">完成編輯</button>
       </div>
+      <div id="overflow-toolbar" class="group edit-only" role="group" aria-label="超界處理" hidden="">
+        <button id="toolbar-move-overflow" type="button" class="danger-action" title="將超過紅線的文字拆移至下一頁">超出部分移至下一頁 ↳</button>
+      </div>
     </div>
   </header>
   <div class="shell">
@@ -201,6 +218,7 @@ button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;
           <div id="guide-y" class="guide-y edit-only" hidden=""></div>
         </section>
       </div>
+      <div id="read-pages" class="read-pages" aria-label="全部頁面"></div>
     </div>
     <aside class="sidebar inspector edit-only" aria-label="物件屬性">
       <div class="side-title"><h2>對齊</h2></div>
@@ -220,6 +238,9 @@ button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;
         <div id="graphic-tools" class="measurements transform-options" hidden="">
           <label>角度（°）<input data-geometry="rotation" type="number" step="0.1"></label>
           <label class="aspect-lock"><input id="lock-ratio" type="checkbox" checked=""> 鎖定比例</label>
+        </div>
+        <div id="overflow-tools" class="inspector-actions" hidden="">
+          <button id="move-overflow" type="button" class="danger-action" title="將超過紅線的文字拆移至下一頁">超出部分移至下一頁 ↳</button>
         </div>
         <div class="group inspector-actions">
           <button id="edit-content" type="button">編輯內容</button>
@@ -249,14 +270,14 @@ button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;
   <footer class="statusbar"><output id="page-status">A4 · 210 × 297 mm</output><span id="status" role="status"></span></footer>
 </main>
 <div id="print-root" aria-hidden="true"></div>
-<script type="application/json" id="document-data">{"version":1,"title":"院內課程公告","pages":[{"id":"sample-page","objects":[{"id":"sample-title","type":"text","x":15,"y":20,"w":175,"h":18,"html":"\u003ch1>課程公告\u003c/h1>"},{"id":"sample-body","type":"text","x":15,"y":30,"w":170,"h":30,"html":"\u003ch2>一點點，就很不一樣\u003c/h2>\u003cp>觀看本月課程後，請在訓練平台提交簡短心得。\u003c/p>"},{"id":"sample-table","type":"table","x":15,"y":55,"w":150,"h":32,"html":"\u003ctable>\u003cthead>\u003ctr>\u003cth>項目\u003c/th>\u003cth>說明\u003c/th>\u003c/tr>\u003c/thead>\u003ctbody>\u003ctr>\u003ctd>適用對象\u003c/td>\u003ctd>&nbsp; &nbsp; &nbsp; &nbsp;全體同仁\u003c/td>\u003c/tr>\u003ctr>\u003ctd>完成期限\u003c/td>\u003ctd>&nbsp; &nbsp; &nbsp; &nbsp; 11 月 30 日\u003c/td>\u003c/tr>\u003c/tbody>\u003c/table>"},{"id":"96403ad9-3a22-465a-a9a7-ddbdc87fc152","type":"symbol","x":91.02,"y":62.88,"w":10,"h":10,"shape":"check","color":"#215d54"},{"id":"b1169b22-0b1a-4f33-9e00-473fa59b9134","type":"symbol","x":90.46,"y":72.47,"w":9.23,"h":9.23,"shape":"star","color":"#215d54"},{"id":"f2815956-896b-42e6-9034-98a1c43a4921","type":"text","x":150,"y":90,"w":100,"h":25,"html":"\u003cp>隨意編排\u003c/p>"}]}]}</script>
+<script type="application/json" id="document-data">{"version":1,"title":"自由模式WORD","pages":[{"id":"sample-page","objects":[{"id":"sample-title","type":"text","x":20,"y":50,"w":175,"h":18,"html":"\u003ch1>課程公告\u003c/h1>"},{"id":"sample-body","type":"text","x":50,"y":30,"w":170,"h":30,"html":"\u003ch2>一點點，就很不一樣\u003c/h2>\u003cp>觀看本月課程後，請在訓練平台提交簡短心得。\u003c/p>"},{"id":"sample-table","type":"table","x":30,"y":94.62,"w":150,"h":32,"html":"\u003ctable>\u003cthead>\u003ctr>\u003cth>項目\u003c/th>\u003cth>說明\u003c/th>\u003c/tr>\u003c/thead>\u003ctbody>\u003ctr>\u003ctd>適用對象\u003c/td>\u003ctd>&nbsp; &nbsp; &nbsp; &nbsp;全體同仁\u003c/td>\u003c/tr>\u003ctr>\u003ctd>完成期限\u003c/td>\u003ctd>&nbsp; &nbsp; &nbsp; &nbsp; 11 月 30 日\u003c/td>\u003c/tr>\u003c/tbody>\u003c/table>"},{"id":"96403ad9-3a22-465a-a9a7-ddbdc87fc152","type":"symbol","x":70,"y":55,"w":10,"h":10,"shape":"check","color":"#215d54"},{"id":"b1169b22-0b1a-4f33-9e00-473fa59b9134","type":"symbol","x":115,"y":60.39,"w":9.23,"h":9.23,"shape":"star","color":"#215d54"},{"id":"f2815956-896b-42e6-9034-98a1c43a4921","type":"text","x":145,"y":69.62,"w":100,"h":25,"html":"\u003cp>隨意編排\u003c/p>"}]}]}</script>
 <script>
 (() => {
 "use strict";
 const $ = id => document.getElementById(id);
 const root = document.documentElement;
 const template = root.cloneNode(true);
-const work = $("work"), stage = $("stage"), page = $("page"), objects = $("objects");
+const work = $("work"), stage = $("stage"), page = $("page"), objects = $("objects"), readPages = $("read-pages");
 const paper = {w:210,h:297,margin:15};
 const pxPerMM = 96 / 25.4, minSize = 5;
 const types = {text:"文字框",table:"表格",image:"圖片",symbol:"符號"};
@@ -306,6 +327,9 @@ const currentPage = () => model.pages.find(value => value.id === pageId);
 const selected = () => currentPage().objects.find(value => value.id === selectedId);
 const isReading = () => root.dataset.mode === "read";
 const frames = new Map();
+const overflows = new Map();
+let overflowStatusActive = false;
+let scrollRaf = 0, scrollLock = null, scrollLockTimer = 0;
 
 function capture() {
   return {pageId,selectedId,model:{...model,pages:model.pages.map(value => ({...value,objects:value.objects.map(object => ({...object}))}))}};
@@ -379,6 +403,11 @@ function buildItem(object,interactive) {
     resize.title = "調整尺寸";
     resize.setAttribute("aria-label","拖曳調整尺寸");
     frame.append(resize);
+    if (object.type === "text") {
+      const line = el("div","overflow-line edit-only");
+      line.setAttribute("aria-hidden","true");
+      frame.append(line);
+    }
     if (isGraphic(object)) {
       const rotate = el("button","rotate-item");
       rotate.type = "button";
@@ -391,6 +420,338 @@ function buildItem(object,interactive) {
   }
   return frame;
 }
+function overflowLimit(object) {
+  return object.y >= paper.h - paper.margin - 5 ? paper.h : paper.h - paper.margin;
+}
+function hasVisibleContent(node) {
+  if (!node) return false;
+  if (node.nodeType === Node.TEXT_NODE) return /[^\s\u200B\uFEFF]/u.test(node.data);
+  if (node.nodeType === Node.ELEMENT_NODE && node.matches("img,hr,table,svg,video,audio")) return true;
+  if (node.nodeType !== Node.ELEMENT_NODE && node.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) return false;
+  return /[^\s\u200B\uFEFF]/u.test(node.textContent) || !!node.querySelector("img,hr,table,svg,video,audio");
+}
+function measureContentBottomMM(body) {
+  const pageRect = page.getBoundingClientRect();
+  if (!pageRect.height) return 0;
+  const mmToPx = pageRect.height / paper.h;
+  let maxBottom = -Infinity;
+  const range = document.createRange();
+  const walker = document.createTreeWalker(body,NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (!/[^\s\u200B\uFEFF]/u.test(node.data)) continue;
+      range.selectNode(node);
+      const rect = range.getBoundingClientRect();
+      if (rect.height > 0 || rect.width > 0) maxBottom = Math.max(maxBottom,rect.bottom);
+    } else if (node.matches("img,hr,table,svg,video,audio")) {
+      const rect = node.getBoundingClientRect();
+      if (rect.height > 0 || rect.width > 0) maxBottom = Math.max(maxBottom,rect.bottom);
+    }
+  }
+  return maxBottom === -Infinity ? 0 : (maxBottom - pageRect.top) / mmToPx;
+}
+function checkObjectOverflow(object) {
+  if (!object) return false;
+  const frame = frames.get(object.id);
+  if (isReading() || object.type !== "text" || !frame) {
+    overflows.delete(object.id);
+    if (frame) delete frame.dataset.overflow;
+    return false;
+  }
+  const body = frame.querySelector(".item-body");
+  const bottomMM = measureContentBottomMM(body);
+  const limitMM = overflowLimit(object);
+  const isOver = bottomMM > limitMM + 0.3;
+  if (isOver) {
+    overflows.set(object.id,{limitMM,bottomMM});
+    frame.dataset.overflow = "";
+    const line = frame.querySelector(".overflow-line");
+    if (line) {
+      line.style.top = Math.max(0,round(limitMM - object.y)) + "mm";
+      line.dataset.label = limitMM === paper.h ? "超出頁面" : "超出下邊界";
+    }
+  } else {
+    overflows.delete(object.id);
+    delete frame.dataset.overflow;
+  }
+  return isOver;
+}
+function syncOverflowUI() {
+  const object = selected();
+  const info = !isReading() && object ? overflows.get(object.id) : null;
+  $("overflow-tools").hidden = !info;
+  $("overflow-toolbar").hidden = !info;
+  for (const button of $("object-list").querySelectorAll("[data-object]")) {
+    button.toggleAttribute("data-overflow",!isReading() && overflows.has(button.dataset.object));
+  }
+  if (info) {
+    const label = info.limitMM === paper.h ? "頁面底部" : "下邊界";
+    status("內容超出" + label + "，可調整文字框或點「超出部分移至下一頁」");
+    overflowStatusActive = true;
+  } else if (overflowStatusActive) {
+    status("");
+    overflowStatusActive = false;
+  }
+}
+function checkAllOverflow() {
+  overflows.clear();
+  if (!isReading()) {
+    for (const object of currentPage().objects) {
+      if (object.type === "text") checkObjectOverflow(object);
+    }
+  }
+  syncOverflowUI();
+}
+function splitTextNode(textNode,limitY) {
+  const text = textNode.data;
+  if (!text.length) return null;
+  const range = document.createRange();
+  range.selectNode(textNode);
+  const fullRect = range.getBoundingClientRect();
+  if (fullRect.height === 0 && fullRect.width === 0) return null;
+  if (fullRect.bottom <= limitY) return null;
+  if (fullRect.top > limitY) return {node:textNode,offset:0};
+  let low = 0, high = text.length;
+  while (low < high) {
+    const mid = Math.ceil((low + high) / 2);
+    range.setStart(textNode,0);
+    range.setEnd(textNode,mid);
+    const rect = range.getBoundingClientRect();
+    if ((rect.height === 0 && rect.width === 0) || rect.bottom <= limitY) low = mid;
+    else high = mid - 1;
+  }
+  if (low > 0 && low < text.length) {
+    const code = text.charCodeAt(low - 1);
+    if (code >= 0xD800 && code <= 0xDBFF) low--;
+  }
+  return low >= text.length ? null : {node:textNode,offset:low};
+}
+function findSplitPoint(container,limitY) {
+  const children = Array.from(container.childNodes);
+  for (let i = 0; i < children.length; i++) {
+    const node = children[i];
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (!/[^\s\u200B\uFEFF]/u.test(node.data)) continue;
+      const point = splitTextNode(node,limitY);
+      if (!point) continue;
+      return point.offset === 0 ? {node:container,offset:i} : point;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) continue;
+    if (node.matches("br")) {
+      const rect = node.getBoundingClientRect();
+      if ((rect.height > 0 || rect.width > 0) && rect.bottom > limitY) return {node:container,offset:i};
+      continue;
+    }
+    const rect = node.getBoundingClientRect();
+    if (rect.height === 0 && rect.width === 0) continue;
+    if (rect.bottom <= limitY) continue;
+    if (rect.top > limitY) return {node:container,offset:i};
+    if (node.matches("img,hr,table,svg,video,audio") || !node.childNodes.length) {
+      return {node:container,offset:i};
+    }
+    const inner = findSplitPoint(node,limitY);
+    if (!inner) continue;
+    const prefix = document.createRange();
+    prefix.setStart(node,0);
+    prefix.setEnd(inner.node,inner.offset);
+    const hasBefore = /[^\s\u200B\uFEFF]/u.test(prefix.toString())
+      || !!prefix.cloneContents().querySelector("img,hr,table,svg,video,audio");
+    return hasBefore ? inner : {node:container,offset:i};
+  }
+  return null;
+}
+function trimEdgeNodes(container,side) {
+  const isEmpty = node => {
+    if (node.nodeType === Node.TEXT_NODE) return !/[^\s\u200B\uFEFF]/u.test(node.data);
+    if (node.nodeType !== Node.ELEMENT_NODE) return true;
+    if (node.matches("img,hr,table,svg,video,audio")) return false;
+    if (node.matches("br")) return true;
+    return !hasVisibleContent(node);
+  };
+  while (container.childNodes.length) {
+    const edge = side === "start" ? container.firstChild : container.lastChild;
+    if (!isEmpty(edge)) break;
+    edge.remove();
+  }
+  const edge = side === "start" ? container.firstElementChild : container.lastElementChild;
+  if (edge && edge.matches("p,div,h1,h2,h3,h4,h5,h6,li,blockquote,pre")) {
+    while (edge.childNodes.length) {
+      const inner = side === "start" ? edge.firstChild : edge.lastChild;
+      if (inner.nodeType === Node.ELEMENT_NODE && inner.matches("br")) { inner.remove(); continue; }
+      if (inner.nodeType === Node.TEXT_NODE && !inner.data) { inner.remove(); continue; }
+      break;
+    }
+  }
+}
+function moveOverflowToNextPage() {
+  if (isReading()) return;
+  finishEdit();
+  const object = selected();
+  if (!object || object.type !== "text") return;
+  if (!checkObjectOverflow(object)) { syncOverflowUI(); return; }
+  const info = overflows.get(object.id);
+  const frame = frames.get(object.id), body = frame?.querySelector(".item-body");
+  if (!body) return;
+  const pageRect = page.getBoundingClientRect();
+  if (!pageRect.height) return;
+  const mmToPx = pageRect.height / paper.h;
+  const limitY = pageRect.top + (info.limitMM + 0.25) * mmToPx;
+  const point = findSplitPoint(body,limitY);
+  if (!point) { checkObjectOverflow(object); syncOverflowUI(); return; }
+  const before = capture();
+  const originalHTML = object.html;
+  const pointEl = point.node.nodeType === Node.ELEMENT_NODE ? point.node : point.node.parentElement;
+  const sourceOl = pointEl?.closest?.("ol");
+  const splitInsideLi = !!pointEl?.closest?.("li") && !!sourceOl?.contains(pointEl.closest("li"));
+  const olStart = sourceOl ? (parseInt(sourceOl.getAttribute("start"),10) || 1) : 1;
+  const cutRange = document.createRange();
+  cutRange.setStart(point.node,point.offset);
+  cutRange.setEnd(body,body.childNodes.length);
+  const movedBox = el("div");
+  movedBox.append(cutRange.extractContents());
+  trimEdgeNodes(body,"end");
+  trimEdgeNodes(movedBox,"start");
+  if (sourceOl && body.contains(sourceOl) && movedBox.firstElementChild?.matches("ol")) {
+    const keptItems = Array.from(sourceOl.children).filter(child => child.localName === "li").length;
+    movedBox.firstElementChild.setAttribute("start",String(Math.max(1,olStart + keptItems - (splitInsideLi ? 1 : 0))));
+  }
+  const keptHasContent = hasVisibleContent(body);
+  const movedHasContent = hasVisibleContent(movedBox);
+  if (!movedHasContent) {
+    body.innerHTML = originalHTML;
+    checkObjectOverflow(object);
+    syncOverflowUI();
+    return;
+  }
+  const pageIndex = model.pages.indexOf(currentPage());
+  let nextPage = model.pages[pageIndex + 1];
+  const createdPage = !nextPage;
+  if (!nextPage) {
+    nextPage = blank();
+    model.pages.splice(pageIndex + 1,0,nextPage);
+  }
+  if (!keptHasContent) {
+    body.innerHTML = originalHTML;
+    if (object.y <= paper.margin + 0.5) {
+      if (createdPage) model.pages.splice(pageIndex + 1,1);
+      status("首個區塊已高於整頁範圍，請縮小內容或調整寬度");
+      overflowStatusActive = false;
+      return;
+    }
+    const list = currentPage().objects;
+    list.splice(list.indexOf(object),1);
+    object.y = paper.margin;
+    nextPage.objects.push(object);
+    record(before);
+    pageId = nextPage.id;
+    selectedId = object.id;
+    work.scrollTo(0,0);
+    render();
+    status("已將整個文字框移至第 " + (pageIndex + 2) + " 頁（可按 Ctrl+Z 復原）");
+    overflowStatusActive = overflows.has(object.id);
+    return;
+  }
+  object.html = body.innerHTML;
+  if (object.y + object.h > info.limitMM) object.h = Math.max(minSize,round(info.limitMM - object.y));
+  const nextObject = {
+    id:id(),type:"text",x:object.x,y:paper.margin,w:object.w,
+    h:Math.max(25,Math.min(round(info.bottomMM - info.limitMM + 6),paper.h - paper.margin * 2)),
+    html:movedBox.innerHTML,
+  };
+  nextPage.objects.push(nextObject);
+  record(before);
+  pageId = nextPage.id;
+  selectedId = nextObject.id;
+  work.scrollTo(0,0);
+  render();
+  const newFrame = frames.get(nextObject.id), newBody = newFrame?.querySelector(".item-body");
+  if (newBody) {
+    const actualBottom = measureContentBottomMM(newBody);
+    if (actualBottom > nextObject.y) {
+      nextObject.h = Math.max(25,Math.min(round(actualBottom - nextObject.y + 4),paper.h - paper.margin * 2));
+      setGeometry(newFrame,nextObject);
+      checkObjectOverflow(nextObject);
+      refreshSelection();
+    }
+  }
+  const stillOver = overflows.has(nextObject.id);
+  status(stillOver
+    ? "已移至第 " + (pageIndex + 2) + " 頁（本頁仍有超出，可調整後再移至下一頁）"
+    : "已將超出內容移至第 " + (pageIndex + 2) + " 頁（可按 Ctrl+Z 復原）");
+  overflowStatusActive = stillOver;
+}
+function clearScrollLock() {
+  scrollLock = null;
+  clearTimeout(scrollLockTimer);
+  scrollLockTimer = 0;
+}
+function applyScale() {
+  const width = paper.w * scale + "mm";
+  const height = paper.h * scale + "mm";
+  const transform = "scale(" + scale + ")";
+  stage.style.width = width;
+  stage.style.height = height;
+  page.style.transform = transform;
+  for (const wrapper of readPages.children) {
+    wrapper.style.width = width;
+    wrapper.style.height = height;
+    wrapper.firstElementChild.style.transform = transform;
+  }
+}
+function renderReadPages() {
+  readPages.replaceChildren(...model.pages.map((value,index) => {
+    const wrapper = el("div","stage read-stage");
+    wrapper.dataset.page = value.id;
+    const sheet = el("section","page read-page");
+    sheet.setAttribute("aria-label","第 " + (index + 1) + " 頁");
+    for (const object of value.objects) sheet.append(buildItem(object,false));
+    wrapper.append(sheet);
+    return wrapper;
+  }));
+  applyScale();
+}
+function updateActivePageUI() {
+  for (const button of $("page-list").querySelectorAll("[data-page]")) {
+    const active = button.dataset.page === pageId;
+    button.setAttribute("aria-pressed",String(active));
+    if (active) button.scrollIntoView({block:"nearest",inline:"nearest"});
+  }
+  $("page-status").textContent = "A4 · 210 × 297 mm · " + (model.pages.findIndex(value => value.id === pageId) + 1) + " / " + model.pages.length;
+}
+function scrollToPage(key,behavior = "smooth") {
+  const target = Array.from(readPages.children).find(node => node.dataset.page === key);
+  if (!target) return;
+  clearScrollLock();
+  scrollLock = key;
+  scrollLockTimer = setTimeout(clearScrollLock,behavior === "smooth" ? 650 : 180);
+  const paddingTop = parseFloat(getComputedStyle(work).paddingTop) || 0;
+  const top = Math.max(0,work.scrollTop + target.getBoundingClientRect().top - work.getBoundingClientRect().top - paddingTop);
+  work.scrollTo({top,behavior});
+}
+function syncScrollPage() {
+  if (!isReading() || !readPages.children.length || scrollLock) return;
+  let activeId = model.pages[0].id;
+  if (work.scrollTop > 2) {
+    const workRect = work.getBoundingClientRect();
+    const focusY = workRect.top + workRect.height * 0.4;
+    let bestVisible = -1, bestDist = Infinity;
+    for (const node of readPages.children) {
+      const rect = node.getBoundingClientRect();
+      const visible = Math.max(0,Math.min(rect.bottom,workRect.bottom) - Math.max(rect.top,workRect.top));
+      const dist = Math.abs((rect.top + rect.bottom) / 2 - focusY);
+      if (visible > bestVisible + 1 || (Math.abs(visible - bestVisible) <= 1 && dist < bestDist)) {
+        bestVisible = visible;
+        bestDist = dist;
+        activeId = node.dataset.page;
+      }
+    }
+  }
+  if (activeId !== pageId) {
+    pageId = activeId;
+    updateActivePageUI();
+  }
+}
 function render() {
   document.title = model.title || "未命名文件";
   $("document-title").value = model.title;
@@ -398,10 +759,18 @@ function render() {
   $("mode").textContent = isReading() ? "編輯模式" : "閱讀模式";
   frames.clear();
   objects.replaceChildren();
-  for (const object of currentPage().objects) {
-    const frame = buildItem(object,!isReading());
-    frames.set(object.id,frame);
-    objects.append(frame);
+  if (isReading()) {
+    renderReadPages();
+    checkAllOverflow();
+  } else {
+    readPages.replaceChildren();
+    for (const object of currentPage().objects) {
+      const frame = buildItem(object,true);
+      frames.set(object.id,frame);
+      objects.append(frame);
+    }
+    applyScale();
+    checkAllOverflow();
   }
   renderPages();
   refreshSelection();
@@ -421,8 +790,14 @@ function renderPages() {
   $("page-status").textContent = "A4 · 210 × 297 mm · " + (model.pages.findIndex(value => value.id === pageId) + 1) + " / " + model.pages.length;
 }
 function refreshSelection() {
+  if (isReading()) {
+    $("properties").hidden = true;
+    $("object-list").replaceChildren();
+    syncOverflowUI();
+    return;
+  }
   const object = selected();
-  for (const [key,frame] of frames) frame.toggleAttribute("data-selected",!isReading() && key === selectedId);
+  for (const [key,frame] of frames) frame.toggleAttribute("data-selected",key === selectedId);
   $("properties").hidden = !object;
   $("object-list").replaceChildren(...currentPage().objects.slice().reverse().map(value => {
     const button = el("button");
@@ -433,8 +808,10 @@ function refreshSelection() {
     button.textContent = types[value.type] + (detail ? " · " + detail.slice(0,35) : "");
     button.title = button.textContent;
     button.setAttribute("aria-pressed",String(value.id === selectedId));
+    button.toggleAttribute("data-overflow",overflows.has(value.id));
     return button;
   }));
+  syncOverflowUI();
   if (!object) return;
   for (const input of $("properties").querySelectorAll("[data-geometry]")) input.value = object[input.dataset.geometry] ?? 0;
   $("edit-content").hidden = isGraphic(object);
@@ -455,6 +832,12 @@ function choose(key) {
   refreshSelection();
 }
 function nav(key) {
+  if (isReading()) {
+    pageId = key;
+    updateActivePageUI();
+    scrollToPage(key,"smooth");
+    return;
+  }
   if (key === pageId) return;
   finishEdit();
   pageId = key;
@@ -463,13 +846,29 @@ function nav(key) {
   render();
 }
 function setScale(next) {
+  let anchor = null;
+  if (isReading() && readPages.children.length && scale > 0 && next !== scale && work.scrollTop > 2) {
+    const workRect = work.getBoundingClientRect();
+    const refY = workRect.top + workRect.height * 0.25;
+    for (const node of readPages.children) {
+      const rect = node.getBoundingClientRect();
+      if (rect.bottom >= refY || node === readPages.lastElementChild) {
+        anchor = {node,ratio:rect.height ? (refY - rect.top) / rect.height : 0};
+        break;
+      }
+    }
+  }
   scale = next;
-  stage.style.width = paper.w * scale + "mm";
-  stage.style.height = paper.h * scale + "mm";
-  page.style.transform = "scale(" + scale + ")";
+  applyScale();
   $("zoom-reset").textContent = Math.round(scale * 100) + "%";
   $("zoom-out").disabled = scale <= .2;
   $("zoom-in").disabled = scale >= 3;
+  if (anchor) {
+    const workRect = work.getBoundingClientRect();
+    const refY = workRect.top + workRect.height * 0.25;
+    const rect = anchor.node.getBoundingClientRect();
+    work.scrollTop += rect.top + anchor.ratio * rect.height - refY;
+  }
 }
 function fit() {
   const padding = getComputedStyle(work);
@@ -606,6 +1005,7 @@ function moveDrag(event) {
     showGuide("y",y.guide);
   }
   setGeometry(frame,object);
+  if (object.type === "text") { checkObjectOverflow(object); syncOverflowUI(); }
 }
 function endDrag(event) {
   if (tableEditor.end(event)) return;
@@ -619,6 +1019,7 @@ function endDrag(event) {
   } else if (before && Object.keys(start).some(key => (start[key] ?? 0) !== (object[key] ?? 0))) record(before);
   showGuide("x",null);
   showGuide("y",null);
+  if (object.type === "text") checkObjectOverflow(object);
   refreshSelection();
 }
 function startEdit(object) {
@@ -657,6 +1058,7 @@ function finishEdit() {
     object.html = body.innerHTML;
     record(before);
   }
+  if (object?.type === "text") checkObjectOverflow(object);
   refreshSelection();
 }
 function rememberTextRange() {
@@ -677,6 +1079,8 @@ function editCommand(command,value = null) {
   }
   document.execCommand(command,false,value);
   rememberTextRange();
+  const object = selected();
+  if (object?.type === "text") { checkObjectOverflow(object); syncOverflowUI(); }
 }
 function sanitizeHTML(html) {
   const source = el("template");
@@ -810,6 +1214,7 @@ function changeGeometry(key,number) {
   }
   if ((object[key] ?? 0) !== value) { object[key] = value; record(before); }
   setGeometry(frames.get(object.id),object);
+  if (object.type === "text") checkObjectOverflow(object);
   refreshSelection();
 }
 function changeLayer(direction) {
@@ -1271,6 +1676,10 @@ document.addEventListener("paste",paste);
 objects.addEventListener("beforeinput",event => {
   if (tableEditor.isPicking()) event.preventDefault();
 });
+objects.addEventListener("input",() => {
+  const object = selected();
+  if (editing && object?.type === "text") { checkObjectOverflow(object); syncOverflowUI(); }
+});
 document.addEventListener("selectionchange",() => {
   rememberTextRange();
   if (editing && selected()?.type === "table") tableEditor.sync();
@@ -1348,6 +1757,8 @@ $("lock-ratio").addEventListener("change",event => {
 $("front").addEventListener("click",() => changeLayer(1));
 $("back").addEventListener("click",() => changeLayer(-1));
 $("delete-object").addEventListener("click",deleteObject);
+$("move-overflow").addEventListener("click",moveOverflowToNextPage);
+$("toolbar-move-overflow").addEventListener("click",moveOverflowToNextPage);
 $("select-cells").addEventListener("click",tableEditor.toggle);
 for (const action of ["add-row","add-column","remove-row","remove-column",
   "merge-horizontal","merge-vertical","merge-range","split-columns","split-rows"]) {
@@ -1380,10 +1791,23 @@ $("new-file").addEventListener("click",() => {
 $("document-title").addEventListener("change",syncTitle);
 $("mode").addEventListener("click",() => {
   finishEdit();
+  clearScrollLock();
   root.dataset.mode = isReading() ? "edit" : "read";
   selectedId = null;
   render();
+  if (fitWidth) fit();
+  if (isReading()) scrollToPage(pageId,"auto");
+  else work.scrollTo(0,0);
 });
+work.addEventListener("scroll",() => {
+  if (!isReading() || scrollRaf) return;
+  scrollRaf = requestAnimationFrame(() => {
+    scrollRaf = 0;
+    syncScrollPage();
+  });
+},{passive:true});
+work.addEventListener("scrollend",clearScrollLock);
+for (const name of ["wheel","touchstart","pointerdown"]) work.addEventListener(name,clearScrollLock,{passive:true});
 $("show-grid").addEventListener("change",updateGuides);
 $("grid-step").addEventListener("change",updateGuides);
 $("zoom-out").addEventListener("click",() => zoom(-1));
