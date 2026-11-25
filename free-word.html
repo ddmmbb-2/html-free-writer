@@ -2,7 +2,7 @@
 <html lang="zh-Hant" data-mode="read"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>自由模式WORD</title>
+<title>未命名文件</title>
 <style>
 :root{color-scheme:light;--ink:#20282a;--muted:#526063;--line:#dde3e2;--panel:#fff;--work:#e9eeec;--accent:#215d54;--accent-light:#e7f2ee;--guide:#007e9d;--danger:#c83e3b;--danger-light:#fdf0ef;--danger-line:#e4a3a1;font:14px/1.5 "Inter","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;color:var(--ink)}
 *{box-sizing:border-box}
@@ -65,6 +65,9 @@ button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;
 .item-body{min-height:100%;width:100%;font:12pt/1.55 "Microsoft JhengHei","Noto Sans CJK TC","PingFang TC",system-ui,sans-serif;overflow-wrap:anywhere;color:#1f2d2b}
 .item-body:focus{outline:none}
 .item-body p,.item-body ul,.item-body ol{margin:0 0 .55em}
+/* Compact paragraph styles: attributes are persisted in the document HTML. */
+.item-body [data-body-size="small"]{font-size:10pt;line-height:1.3;margin-block:0 .3em}
+.item-body [data-body-size="tiny"]{font-size:8pt;line-height:1.15;margin-block:0 .15em}
 .item-body h1,.item-body h2,.item-body h3{line-height:1.25;margin:0 0 .35em}
 .item-body h1{font-size:24pt}.item-body h2{font-size:17pt}.item-body h3{font-size:14pt}
 .item-body table{width:100%;table-layout:fixed;border-collapse:collapse}
@@ -97,7 +100,22 @@ button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;
 .table-actions button{font-size:12px;padding-inline:4px}
 .table-actions .full-width{grid-column:1/-1}
 .symbol-color,.text-color{display:inline-flex;align-items:center;gap:7px}
-.symbol-color input,.text-color input{width:39px;padding:3px}
+.palette-wrap{position:relative;display:inline-flex;align-items:center;gap:5px;max-width:100%}
+.palette-toggle{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.palette-current{width:17px;height:17px;border:1px solid #0004;border-radius:3px;display:inline-block;flex:none}
+.palette-panel{position:fixed;z-index:20;padding:9px;background:white;border:1px solid var(--line);box-shadow:0 7px 24px #182b2533;border-radius:8px;width:max-content;max-width:calc(100vw - 12px)}
+.palette-grid{display:grid;grid-template-columns:repeat(10, minmax(0,1fr));gap:4px}
+.palette-grid button{width:23px;height:23px;min-height:0;padding:0;border:1px solid #0003;border-radius:3px;background:var(--swatch)}
+.palette-grid button:hover,.palette-grid button:focus-visible{background:var(--swatch);outline:2px solid var(--accent);outline-offset:1px}
+.palette-grid button[aria-pressed="true"]{background:var(--swatch);border:2px solid white;box-shadow:0 0 0 2px var(--accent)}
+.attachment-card{display:flex;flex-direction:column;justify-content:center;gap:3px;padding:6px 9px;border:1px solid #b9c9c5;border-radius:5px;background:#f3f7f5;height:100%;overflow:hidden;font-size:10pt;line-height:1.25}
+.item[data-kind="attachment"] .item-body{height:100%}
+.attachment-name{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.attachment-meta{font-size:8pt;color:#526063}
+.attachment-actions{display:flex;gap:4px;flex-wrap:wrap}
+.attachment-actions button{font-size:9pt;min-height:0;padding:2px 6px;line-height:1.3}
+@media print{.attachment-actions{display:none!important}}
+@media(max-width:350px){.palette-grid button{width:19px;height:19px}}
 .grid-option label{display:inline-flex;gap:4px;align-items:center}
 .grid-option input{min-height:0;margin:0;accent-color:var(--accent)}
 .grid-option select{min-height:29px}
@@ -165,6 +183,8 @@ button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;
         <button type="button" data-add="text">＋ 文字框</button>
         <button type="button" data-add="table">＋ 表格</button>
         <button type="button" data-add="image">＋ 圖片</button>
+        <button type="button" data-add="attachment">＋ 附件</button>
+        <input type="file" id="attachment-file" multiple hidden>
         <select id="symbol-picker" aria-label="插入向量符號">
           <option value="">＋ 符號</option>
         </select>
@@ -182,15 +202,13 @@ button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;
       </div>
       <div id="text-tools" class="group edit-only" role="group" aria-label="框內格式" hidden="">
         <select id="format" aria-label="段落樣式">
-          <option value="">段落樣式</option><option value="p">內文</option><option value="h1">標題 1</option><option value="h2">標題 2</option><option value="h3">標題 3</option>
+          <option value="">段落樣式</option><option value="p">內文</option><option value="small">小內文</option><option value="tiny">極小內文</option><option value="h1">標題 1</option><option value="h2">標題 2</option><option value="h3">標題 3</option>
         </select>
         <button type="button" data-command="bold" aria-label="粗體"><b>B</b></button>
         <button type="button" data-command="italic" aria-label="斜體"><i>I</i></button>
         <button type="button" data-command="underline" aria-label="底線"><u>U</u></button>
         <div class="text-color">
-          <label for="text-color">文字顏色</label>
-          <input id="text-color" type="color" value="#1f2d2b">
-          <button id="apply-text-color" type="button" aria-label="套用目前的文字顏色">套用</button>
+          <div class="palette-wrap" id="text-palette"><button id="text-color" class="palette-toggle" type="button" aria-expanded="false" aria-controls="text-palette-panel"><span class="palette-current" style="background:#1f2d2b"></span>文字顏色 ▾</button><div id="text-palette-panel" class="palette-panel" hidden><div class="palette-grid"></div></div></div>
         </div>
         <button type="button" data-command="justifyLeft">靠左</button>
         <button type="button" data-command="justifyCenter">置中</button>
@@ -249,8 +267,9 @@ button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;
           <button id="delete-object" type="button">刪除</button>
         </div>
         <div id="symbol-tools" class="inspector-actions" hidden="">
-          <label class="symbol-color">符號顏色<input id="symbol-color" type="color" value="#215d54"></label>
+          <div class="palette-wrap" id="symbol-palette"><button id="symbol-color" class="palette-toggle" type="button" aria-expanded="false" aria-controls="symbol-palette-panel"><span class="palette-current" style="background:#215d54"></span>符號顏色 ▾</button><div id="symbol-palette-panel" class="palette-panel" hidden><div class="palette-grid"></div></div></div>
         </div>
+        <div id="attachment-tools" class="group inspector-actions" hidden><button id="attachment-open" type="button">開啟附件</button><button id="attachment-download" type="button">下載附件</button></div>
         <div id="table-tools" class="group inspector-actions table-actions" hidden="">
           <button id="select-cells" type="button" class="full-width" aria-pressed="false" title="拖曳選取，或依序點選範圍的兩個端點">選取儲存格</button>
           <button id="merge-horizontal" type="button">橫向合併</button><button id="merge-vertical" type="button">垂直合併</button>
@@ -270,17 +289,20 @@ button[aria-pressed="true"]{background:var(--accent-light);border-color:#8bb9af;
   <footer class="statusbar"><output id="page-status">A4 · 210 × 297 mm</output><span id="status" role="status"></span></footer>
 </main>
 <div id="print-root" aria-hidden="true"></div>
-<script type="application/json" id="document-data">{"version":1,"title":"自由模式WORD","pages":[{"id":"sample-page","objects":[{"id":"sample-title","type":"text","x":20,"y":50,"w":175,"h":18,"html":"\u003ch1>課程公告\u003c/h1>"},{"id":"sample-body","type":"text","x":50,"y":30,"w":170,"h":30,"html":"\u003ch2>一點點，就很不一樣\u003c/h2>\u003cp>觀看本月課程後，請在訓練平台提交簡短心得。\u003c/p>"},{"id":"sample-table","type":"table","x":30,"y":94.62,"w":150,"h":32,"html":"\u003ctable>\u003cthead>\u003ctr>\u003cth>項目\u003c/th>\u003cth>說明\u003c/th>\u003c/tr>\u003c/thead>\u003ctbody>\u003ctr>\u003ctd>適用對象\u003c/td>\u003ctd>&nbsp; &nbsp; &nbsp; &nbsp;全體同仁\u003c/td>\u003c/tr>\u003ctr>\u003ctd>完成期限\u003c/td>\u003ctd>&nbsp; &nbsp; &nbsp; &nbsp; 11 月 30 日\u003c/td>\u003c/tr>\u003c/tbody>\u003c/table>"},{"id":"96403ad9-3a22-465a-a9a7-ddbdc87fc152","type":"symbol","x":70,"y":55,"w":10,"h":10,"shape":"check","color":"#215d54"},{"id":"b1169b22-0b1a-4f33-9e00-473fa59b9134","type":"symbol","x":115,"y":60.39,"w":9.23,"h":9.23,"shape":"star","color":"#215d54"},{"id":"f2815956-896b-42e6-9034-98a1c43a4921","type":"text","x":145,"y":69.62,"w":100,"h":25,"html":"\u003cp>隨意編排\u003c/p>"}]}]}</script>
+<script type="application/json" id="document-data">{"version":1,"title":"未命名文件","pages":[{"id":"82549bfa-3b55-491e-a104-8c33ed6a68a4","objects":[]}]}</script>
 <script>
 (() => {
 "use strict";
+// Maintenance contract: prioritize LLM-friendly named modules, predictable document schema,
+// and localized changes over human-oriented formatting. Keep this editor self-contained.
+// Attachment objects contain immutable base64 payloads, never external file paths.
 const $ = id => document.getElementById(id);
 const root = document.documentElement;
 const template = root.cloneNode(true);
 const work = $("work"), stage = $("stage"), page = $("page"), objects = $("objects"), readPages = $("read-pages");
 const paper = {w:210,h:297,margin:15};
 const pxPerMM = 96 / 25.4, minSize = 5;
-const types = {text:"文字框",table:"表格",image:"圖片",symbol:"符號"};
+const types = {text:"文字框",table:"表格",image:"圖片",symbol:"符號",attachment:"附件"};
 const arrow = "M5 37H57V13L96 50 57 87V63H5Z";
 const symbols = {
   right:{name:"→ 右箭頭",path:arrow,w:32,h:17},
@@ -393,7 +415,8 @@ function buildItem(object,interactive) {
     img.draggable = false;
     body.append(img);
   } else if (object.type === "symbol") body.append(buildSymbol(object));
-  else body.innerHTML = object.html;
+  else if (object.type === "attachment") body.append(buildAttachment(object,interactive));
+   else body.innerHTML = object.html;
   frame.append(body);
   if (interactive) {
     frame.tabIndex = 0;
@@ -753,6 +776,7 @@ function syncScrollPage() {
   }
 }
 function render() {
+  closePalettes();
   document.title = model.title || "未命名文件";
   $("document-title").value = model.title;
   $("document-title").readOnly = isReading();
@@ -804,7 +828,7 @@ function refreshSelection() {
     button.type = "button";
     button.dataset.object = value.id;
     const text = frames.get(value.id).querySelector(".item-body").textContent.trim();
-    const detail = value.type === "image" ? value.alt : value.type === "symbol" ? symbols[value.shape]?.name : text;
+    const detail = value.type === "image" ? value.alt : value.type === "symbol" ? symbols[value.shape]?.name : value.type === "attachment" ? value.name : text;
     button.textContent = types[value.type] + (detail ? " · " + detail.slice(0,35) : "");
     button.title = button.textContent;
     button.setAttribute("aria-pressed",String(value.id === selectedId));
@@ -814,11 +838,13 @@ function refreshSelection() {
   syncOverflowUI();
   if (!object) return;
   for (const input of $("properties").querySelectorAll("[data-geometry]")) input.value = object[input.dataset.geometry] ?? 0;
-  $("edit-content").hidden = isGraphic(object);
+  $("edit-content").hidden = isGraphic(object) || object.type === "attachment";
+  $("attachment-tools").hidden = object.type !== "attachment";
+  if (object.type === "attachment") $("attachment-open").hidden = !attachmentPreviewType(object);
   $("graphic-tools").hidden = !isGraphic(object);
   $("lock-ratio").checked = fixedRatio(object);
   $("symbol-tools").hidden = object.type !== "symbol";
-  if (object.type === "symbol") $("symbol-color").value = object.color;
+  if (object.type === "symbol") setPaletteColor("symbol",object.color);
   $("table-tools").hidden = object.type !== "table";
   tableEditor.sync();
   const layer = currentPage().objects.indexOf(object);
@@ -1023,7 +1049,7 @@ function endDrag(event) {
   refreshSelection();
 }
 function startEdit(object) {
-  if (!object || isGraphic(object) || isReading() || editing?.id === object.id) return;
+  if (!object || isGraphic(object) || object.type === "attachment" || isReading() || editing?.id === object.id) return;
   finishEdit();
   selectedId = object.id;
   const frame = frames.get(object.id), body = frame.querySelector(".item-body");
@@ -1052,6 +1078,7 @@ function finishEdit() {
   body.contentEditable = "false";
   body.removeAttribute("aria-label");
   delete frames.get(key).dataset.editing;
+  closePalettes();
   $("text-tools").hidden = true;
   const object = currentPage().objects.find(value => value.id === key);
   if (object && object.html !== body.innerHTML) {
@@ -1100,6 +1127,7 @@ function sanitizeHTML(html) {
       if (heading) tag = "h" + heading[1];
     }
     const copy = el(tag);
+    if (node.matches("p,div,li") && ["small","tiny"].includes(node.dataset.bodySize)) copy.dataset.bodySize = node.dataset.bodySize;
     for (const name of allowedAttrs[tag] || []) {
       if (node.hasAttribute(name)) copy.setAttribute(name,node.getAttribute(name));
     }
@@ -1158,6 +1186,82 @@ function paste(event) {
     }
     addObject("text",{html:box.innerHTML});
   }
+}
+// Attachment module: only passive, explicitly allowed formats may be opened inline.
+// HTML, SVG, executables and unknown file types are download-only.
+const attachmentPreviewTypes = {pdf:"application/pdf",png:"image/png",jpg:"image/jpeg",jpeg:"image/jpeg",gif:"image/gif",webp:"image/webp",bmp:"image/bmp",avif:"image/avif",txt:"text/plain",csv:"text/plain",log:"text/plain",md:"text/plain",json:"text/plain",mp3:"audio/mpeg",wav:"audio/wav",ogg:"audio/ogg",m4a:"audio/mp4",mp4:"video/mp4",webm:"video/webm"};
+function attachmentPreviewType(object) {
+  const ext = object.name?.toLowerCase().split(".").pop();
+  return Object.hasOwn(attachmentPreviewTypes,ext) ? attachmentPreviewTypes[ext] : null;
+}
+function attachmentSize(bytes) {
+  return bytes < 1024 ? bytes + " B" : bytes < 1048576 ? (bytes / 1024).toFixed(1) + " KB" : (bytes / 1048576).toFixed(1) + " MB";
+}
+function buildAttachment(object,interactive) {
+  const card = el("div","attachment-card"), name = el("span","attachment-name"), meta = el("span","attachment-meta");
+  name.textContent = "📎 " + object.name; name.title = object.name;
+  meta.textContent = attachmentSize(object.size) + " · " + (attachmentPreviewType(object) ? "可預覽" : "下載附件");
+  card.append(name,meta);
+  if (!interactive) {
+    const actions = el("div","attachment-actions");
+    for (const [label,preview] of [["開啟",true],["下載",false]]) {
+      if (preview && !attachmentPreviewType(object)) continue;
+      const button = el("button"); button.type = "button"; button.textContent = label;
+      button.addEventListener("click",() => accessAttachment(object,preview));
+      actions.append(button);
+    }
+    card.append(actions);
+  }
+  return card;
+}
+function accessAttachment(object,preview) {
+  if (object?.type !== "attachment") return;
+  const mime = preview ? attachmentPreviewType(object) : "application/octet-stream";
+  if (!mime) return;
+  try {
+    const chunks = [];
+    for (let offset=0;offset<object.data.length;offset+=32768) {
+      const decoded = atob(object.data.slice(offset,offset+32768));
+      chunks.push(Uint8Array.from(decoded,ch=>ch.charCodeAt(0)));
+    }
+    const url = URL.createObjectURL(new Blob(chunks,{type:mime}));
+    const link = el("a"); link.href = url;
+    if (preview) { link.target = "_blank"; link.rel = "noopener noreferrer"; }
+    else link.download = object.name;
+    document.body.append(link); link.click(); link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),120000);
+  } catch(error) { status("附件讀取失敗：" + object.name); }
+}
+function readAttachment(file) {
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>resolve({name:file.name,size:file.size,data:String(reader.result).split(",",2)[1] || ""});
+    reader.onerror = ()=>reject(reader.error);
+    reader.onabort = ()=>reject(new Error("讀取已取消"));
+    reader.readAsDataURL(file);
+  });
+}
+async function addAttachments(files) {
+  if (isReading() || !files.length) return;
+  const target = currentPage(), originalModel = model;
+  const existing = model.pages.reduce((sum,p)=>sum+p.objects.reduce((n,o)=>n+(o.type === "attachment" ? o.size : 0),0),0);
+  const total = existing + files.reduce((n,f)=>n+f.size,0);
+  if (total > 20*1024*1024 && !confirm("附件合計超過 20 MB。單檔 HTML 會因 Base64 增大約三分之一，可能耗用較多記憶體。仍要嵌入嗎？")) return;
+  status("正在讀取附件…");
+  const loaded = []; let failed = 0;
+  for (const file of files) { try { loaded.push(await readAttachment(file)); } catch { failed++; } }
+  if (model !== originalModel || !model.pages.includes(target) || isReading()) { status("文件或模式已變更，未加入附件"); return; }
+  if (!loaded.length) { status("附件讀取失敗"); return; }
+  finishEdit(); const before = capture();
+  let slot = target.objects.filter(o=>o.type === "attachment").length;
+  for (const file of loaded) {
+    const index = slot++ % 18;
+    const object = {id:id(),type:"attachment",x:15+(index>=9?92:0),y:15+(index%9)*29,w:88,h:25,...file};
+    target.objects.push(object);
+    if (target.id === pageId) selectedId = object.id;
+  }
+  record(before); render();
+  status("已加入 " + loaded.length + " 個附件" + (failed ? "，" + failed + " 個讀取失敗" : ""));
 }
 function newTable() {
   return "<table><thead><tr><th>欄位 1</th><th>欄位 2</th></tr></thead><tbody><tr><td><br></td><td><br></td></tr><tr><td><br></td><td><br></td></tr></tbody></table>";
@@ -1519,7 +1623,7 @@ const tableEditor = (() => {
     startEdit(object);
     picking = true;
     frames.get(object.id).setAttribute("data-picking-cells","");
-    $("text-tools").hidden = true;
+    $("text-tools").hidden = false;
     sync();
   }
   function begin(event) {
@@ -1600,7 +1704,28 @@ const tableEditor = (() => {
     }
     refreshSelection();
   }
-  return {sync,reset,toggle,begin,move,end,change,isPicking:() => picking};
+  function formatCells(value) {
+    for (const {cell} of selection?.areas || []) {
+      const tag = ["small","tiny"].includes(value) ? "p" : value;
+      const blocks = Array.from(cell.children).filter(node=>node.matches("p,div,h1,h2,h3,h4,h5,h6") && !node.querySelector("table,ul,ol"));
+      if (blocks.length && Array.from(cell.childNodes).every(node=>blocks.includes(node) || (node.nodeType===3 && !node.data.trim()))) {
+        for (const old of blocks) {
+          const block = old.localName === tag ? old : el(tag);
+          if (block !== old) { for (const attr of old.attributes) block.setAttribute(attr.name,attr.value); block.append(...old.childNodes); old.replaceWith(block); }
+          setParagraphSize(block,value);
+        }
+      } else if (!cell.querySelector("table,ul,ol")) {
+        const block = el(tag); block.append(...cell.childNodes); if (!block.firstChild) block.append(el("br")); cell.append(block); setParagraphSize(block,value);
+      }
+    }
+  }
+  function colorCells(color) {
+    for (const {cell} of selection?.areas || []) {
+      cell.style.color = color;
+      for (const node of cell.querySelectorAll("[color], [style]")) { node.removeAttribute("color"); node.style.removeProperty("color"); }
+    }
+  }
+  return {sync,reset,toggle,begin,move,end,change,formatCells,colorCells,isPicking:() => picking};
 })();
 
 function syncTitle() {
@@ -1692,16 +1817,86 @@ $("text-tools").addEventListener("click",event => {
   const command = event.target.closest("[data-command]")?.dataset.command;
   if (command) editCommand(command);
 });
+// Paragraph styles apply to entire selected paragraphs, not merely the selected characters.
+function applyParagraphStyle(value) {
+  if (!editing || !value) return;
+  if (tableEditor.isPicking()) { tableEditor.formatCells(value); return; }
+  const compact = value === "small" || value === "tiny";
+  const tag = compact ? "p" : value;
+  editCommand("formatBlock","<" + tag + ">");
+  const range = editing.range;
+  if (!range) return;
+  const body = editing.body, matches = "p,div,h1,h2,h3,h4,h5,h6,li";
+  const getBlock = node => (node.nodeType === 1 ? node : node.parentElement)?.closest(matches);
+  const blocks = new Set();
+  if (range.collapsed) { const block = getBlock(range.startContainer); if (block && block !== body && body.contains(block)) blocks.add(block); }
+  else {
+    for (const block of body.querySelectorAll(matches)) {
+      if (!range.intersectsNode(block) || block.querySelector(matches)) continue;
+      const r = document.createRange(); r.selectNodeContents(block);
+      if (range.compareBoundaryPoints(Range.END_TO_START,r) >= 0 || range.compareBoundaryPoints(Range.START_TO_END,r) <= 0) continue;
+      blocks.add(block);
+    }
+    if (!blocks.size) { const block = getBlock(range.startContainer); if (block && block !== body && body.contains(block)) blocks.add(block); }
+  }
+  for (const block of blocks) setParagraphSize(block,value);
+  if (selected()?.type === "text") { checkObjectOverflow(selected()); syncOverflowUI(); }
+}
+function setParagraphSize(block,value) {
+  if (value === "small" || value === "tiny") {
+    block.dataset.bodySize = value;
+    block.style.removeProperty("font-size"); block.style.removeProperty("line-height");
+    block.style.removeProperty("margin-bottom"); block.style.removeProperty("margin-block");
+  } else delete block.dataset.bodySize;
+}
 $("format").addEventListener("change",event => {
-  const {value} = event.target;
-  if (value) editCommand("formatBlock","<" + value + ">");
+  applyParagraphStyle(event.target.value);
   event.target.value = "";
 });
-function applyTextColor() {
-  editCommand("foreColor",$("text-color").value);
+// Fixed 70-color palette shared by text and vector symbols. No native color picker.
+const paletteColors = [
+ "#000000","#1f2d2b","#333333","#555555","#777777","#999999","#bbbbbb","#dddddd","#eeeeee","#ffffff",
+ "#7f1d1d","#7c2d12","#78350f","#713f12","#365314","#14532d","#134e4a","#164e63","#1e3a8a","#581c87",
+ "#b91c1c","#c2410c","#b45309","#a16207","#4d7c0f","#15803d","#0f766e","#0e7490","#1d4ed8","#7e22ce",
+ "#ef4444","#f97316","#f59e0b","#eab308","#84cc16","#22c55e","#14b8a6","#06b6d4","#3b82f6","#a855f7",
+ "#fca5a5","#fdba74","#fcd34d","#fde047","#bef264","#86efac","#5eead4","#67e8f9","#93c5fd","#d8b4fe",
+ "#fee2e2","#ffedd5","#fef3c7","#fef9c3","#ecfccb","#dcfce7","#ccfbf1","#cffafe","#dbeafe","#f3e8ff",
+ "#9d174d","#db2777","#f9a8d4","#fce7f3","#783d2a","#a16248","#d6b99b","#f5e8d8","#215d54","#475569"
+];
+function setPaletteColor(kind,color) {
+  const button = $(kind+"-color");
+  button.querySelector(".palette-current").style.background = color;
+  for (const swatch of $(kind+"-palette-panel").querySelectorAll("[data-color]")) swatch.setAttribute("aria-pressed",String(swatch.dataset.color === color));
 }
-$("text-color").addEventListener("change",applyTextColor);
-$("apply-text-color").addEventListener("click",applyTextColor);
+function closePalettes() {
+  for (const kind of ["text","symbol"]) { $(kind+"-palette-panel").hidden = true; $(kind+"-color").setAttribute("aria-expanded","false"); }
+}
+function setupPalette(kind,initial,apply) {
+  const toggle = $(kind+"-color"), panel = $(kind+"-palette-panel"), grid = panel.querySelector(".palette-grid");
+  for (const color of paletteColors) {
+    const button = el("button"); button.type = "button"; button.dataset.color = color;
+    button.style.setProperty("--swatch",color); button.title = color; button.setAttribute("aria-label","顏色 " + color);
+    button.addEventListener("click",()=>{ apply(color); setPaletteColor(kind,color); closePalettes(); });
+    grid.append(button);
+  }
+  setPaletteColor(kind,initial);
+  toggle.addEventListener("click",()=>{
+    const open = panel.hidden; closePalettes(); if (!open) return;
+    panel.hidden = false; toggle.setAttribute("aria-expanded","true");
+    const rect = toggle.getBoundingClientRect(), bounds = panel.getBoundingClientRect();
+    panel.style.left = Math.max(6,Math.min(rect.left,innerWidth-bounds.width-6))+"px";
+    panel.style.top = Math.max(6,Math.min(rect.bottom+4,innerHeight-bounds.height-6))+"px";
+  });
+}
+setupPalette("text","#1f2d2b",color=>{ if (tableEditor.isPicking()) tableEditor.colorCells(color); else editCommand("foreColor",color); });
+setupPalette("symbol","#215d54",color=>{
+  const object = selected(); if (object?.type !== "symbol" || object.color === color) return;
+  const before = capture(); object.color = color;
+  frames.get(object.id).querySelector(".item-body").replaceChildren(buildSymbol(object)); record(before);
+});
+document.addEventListener("pointerdown",event=>{if (!event.target.closest(".palette-wrap")) closePalettes();});
+window.addEventListener("resize",closePalettes);
+
 $("finish-edit").addEventListener("click",() => { const frame = frames.get(selectedId); finishEdit(); frame?.focus(); });
 $("edit-content").addEventListener("click",() => startEdit(selected()));
 $("page-list").addEventListener("click",event => {
@@ -1715,6 +1910,7 @@ $("object-list").addEventListener("click",event => {
 for (const button of document.querySelectorAll("[data-add]")) {
   button.addEventListener("click",() => {
     if (button.dataset.add === "image") $("image-file").click();
+    else if (button.dataset.add === "attachment") $("attachment-file").click();
     else if (button.dataset.add === "table") addObject("table",{html:newTable()});
     else startEdit(addObject("text",{html:"<p><br></p>"}));
   });
@@ -1731,14 +1927,11 @@ $("symbol-picker").addEventListener("change",event => {
   if (shape && Object.hasOwn(symbols,key)) addObject("symbol",{shape:key,color:"#215d54",w:shape.w,h:shape.h});
   event.target.value = "";
 });
-$("symbol-color").addEventListener("change",event => {
-  const object = selected(), color = event.target.value;
-  if (object?.type !== "symbol" || object.color === color) return;
-  const before = capture();
-  object.color = color;
-  frames.get(object.id).querySelector(".item-body").replaceChildren(buildSymbol(object));
-  record(before);
+$("attachment-file").addEventListener("change",event => {
+  const files = Array.from(event.target.files); event.target.value = ""; addAttachments(files);
 });
+$("attachment-open").addEventListener("click",()=>accessAttachment(selected(),true));
+$("attachment-download").addEventListener("click",()=>accessAttachment(selected(),false));
 $("image-file").addEventListener("change",event => {
   loadImage(event.target.files[0]);
   event.target.value = "";
@@ -1829,6 +2022,7 @@ document.addEventListener("keydown",event => {
   if (command && key === "s") { event.preventDefault(); saveHTML(); return; }
   if (isReading() || event.target.closest("input,textarea,select")) return;
   if (event.key === "Escape") {
+    if (["text","symbol"].some(kind=>!$(kind+"-palette-panel").hidden)) {closePalettes();return;}
     if (editing) { const frame = frames.get(selectedId); finishEdit(); frame?.focus(); }
     else choose(null);
     return;
